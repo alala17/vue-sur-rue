@@ -528,11 +528,12 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
 label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px }
 .stack{ display:flex; flex-direction:column; gap:12px }
 /* Inputs */
-select, .btn{ appearance:none; border:1px solid var(--border); border-radius:12px; padding:12px 14px; font-size:14px; background:#fff; cursor:pointer; }
+select, .btn{ appearance:none; border:1px solid var(--border); border-radius:12px; padding:12px 14px; font-size:14px; background:#fff; cursor:pointer; pointer-events: auto; position: relative; z-index: 1; }
 .btn-primary{ background:var(--violet-1); border-color:transparent; color:#fff; font-weight:600; transition: transform .05s ease, box-shadow .2s ease; }
 .btn-primary:hover{ transform: translateY(-1px); box-shadow:0 8px 18px rgba(123,92,255,.35) }
 .mode-group{ display:flex; gap:8px }
-.mode-btn{ flex:1; text-align:center; padding:10px 12px; border-radius:999px; border:1px solid var(--border); background:#faf9ff; cursor:pointer; font-weight:600; font-size:13px; }
+.mode-btn{ flex:1; text-align:center; padding:10px 12px; border-radius:999px; border:1px solid var(--border); background:#faf9ff; cursor:pointer; font-weight:600; font-size:13px; transition: all 0.2s ease; pointer-events: auto; position: relative; z-index: 1; }
+.mode-btn:hover{ background:#f0edff; transform: translateY(-1px); }
 .mode-btn[data-active="true"]{ background: linear-gradient(90deg, var(--violet-1), var(--violet-2)); color:#fff; border-color:transparent; box-shadow:0 6px 14px rgba(123,92,255,.35) }
 /* Drop zone */
 .dropzone{ border:2px dashed #d9d6ff; background: #fbfaff; border-radius:16px; padding:24px; text-align:center; transition: border-color .2s ease, background .2s ease; }
@@ -648,16 +649,22 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 </div>
 <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 // Mode buttons
 const modeGroup = document.getElementById('modeGroup');
 const modeInput = document.getElementById('modeInput');
-modeGroup.addEventListener('click', (e)=>{
-const btn = e.target.closest('.mode-btn');
-if(!btn) return;
-[...modeGroup.querySelectorAll('.mode-btn')].forEach(b=>b.removeAttribute('data-active'));
-btn.setAttribute('data-active','true');
-modeInput.value = btn.getAttribute('data-mode');
-});
+
+if (modeGroup && modeInput) {
+    modeGroup.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.mode-btn');
+        if(!btn) return;
+        [...modeGroup.querySelectorAll('.mode-btn')].forEach(b=>b.removeAttribute('data-active'));
+        btn.setAttribute('data-active','true');
+        modeInput.value = btn.getAttribute('data-mode');
+        console.log('Mode changed to:', modeInput.value);
+    });
+}
+
 // Dropzone / file input
 const dropzone = document.getElementById('dropzone');
 const pickBtn = document.getElementById('pickBtn');
@@ -669,83 +676,113 @@ const form = document.getElementById('searchForm');
 const searchBtn = document.getElementById('searchBtn');
 const loaderOverlay = document.getElementById('loaderOverlay');
 let cropper = null;
+
 // Ensure the "Téléchargez une image" button opens native picker
-pickBtn.addEventListener('click', (e) => {
-e.preventDefault();
-fileInput.click();
-});
+if (pickBtn && fileInput) {
+    pickBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Pick button clicked');
+        fileInput.click();
+    });
+}
+
 function handleFile(file){
-if(!file) return;
-if (file.size > 64 * 1024 * 1024) {
-alert('Fichier trop volumineux. Sélectionnez une image < 64 Mo.');
-fileInput.value = '';
-imageBase64.value = '';
-if (cropper) { cropper.destroy(); cropper = null; }
-cropperArea.style.display = 'none';
-preview.src = '';
-return;
+    if(!file) return;
+    console.log('Handling file:', file.name, file.size);
+    
+    if (file.size > 64 * 1024 * 1024) {
+        alert('Fichier trop volumineux. Sélectionnez une image < 64 Mo.');
+        fileInput.value = '';
+        imageBase64.value = '';
+        if (cropper) { cropper.destroy(); cropper = null; }
+        if (cropperArea) cropperArea.style.display = 'none';
+        if (preview) preview.src = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e){
+        if (preview) {
+            preview.src = e.target.result;
+            if (cropperArea) cropperArea.style.display = 'block';
+            if (cropper) { cropper.destroy(); cropper = null; }
+            cropper = new Cropper(preview, {
+                viewMode: 1,
+                aspectRatio: 1,
+                dragMode: 'move',
+                autoCropArea: 1.0,
+                responsive: true,
+                background: false,
+            });
+            console.log('Cropper initialized');
+        }
+    }
+    reader.readAsDataURL(file);
 }
-const reader = new FileReader();
-reader.onload = function(e){
-preview.src = e.target.result;
-cropperArea.style.display = 'block';
-if (cropper) { cropper.destroy(); cropper = null; }
-cropper = new Cropper(preview, {
-viewMode: 1,
-aspectRatio: 1,
-dragMode: 'move',
-autoCropArea: 1.0,
-responsive: true,
-background: false,
-});
+
+if (fileInput) {
+    fileInput.addEventListener('change', () => handleFile(fileInput.files && fileInput.files[0]));
 }
-reader.readAsDataURL(file);
+
+// Drag and drop functionality
+if (dropzone) {
+    ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+    }) );
+    
+    ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+    }) );
+    
+    dropzone.addEventListener('drop', e=>{
+        const f = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+            console.log('File dropped:', f.name);
+            // keep the file in the input for form submission
+            const dt = new DataTransfer();
+            dt.items.add(f);
+            if (fileInput) fileInput.files = dt.files;
+            handleFile(f);
+        }
+    });
 }
-fileInput.addEventListener('change', () => handleFile(fileInput.files && fileInput.files[0]));
-['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
-e.preventDefault();
-e.stopPropagation();
-dropzone.classList.add('dragover');
-}) );
-['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => {
-e.preventDefault();
-e.stopPropagation();
-dropzone.classList.remove('dragover');
-}) );
-dropzone.addEventListener('drop', e=>{
-const f = e.dataTransfer.files && e.dataTransfer.files[0];
-if (f) {
-// keep the file in the input for form submission
-const dt = new DataTransfer();
-dt.items.add(f);
-fileInput.files = dt.files;
-handleFile(f);
-}
-});
+
 // Show loader on submit and embed cropped image
-form.addEventListener('submit', function(e){
-const file = fileInput.files && fileInput.files[0];
-if(!file){
-alert('Veuillez d'abord sélectionner une image.');
-e.preventDefault();
-return;
+if (form && searchBtn && loaderOverlay) {
+    form.addEventListener('submit', function(e){
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if(!file){
+            alert('Veuillez d'abord sélectionner une image.');
+            e.preventDefault();
+            return;
+        }
+        
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
+            if (!canvas) {
+                alert('Impossible de recadrer cette image. Essayez-en une autre.');
+                e.preventDefault();
+                return;
+            }
+            if (imageBase64) imageBase64.value = canvas.toDataURL('image/jpeg', 0.8); // JPEG 80%
+        } else {
+            if (imageBase64) imageBase64.value = '';
+        }
+        
+        // Disable the submit to avoid double posts and show loader
+        searchBtn.disabled = true;
+        loaderOverlay.style.display = 'flex';
+        loaderOverlay.setAttribute('aria-hidden', 'false');
+        console.log('Form submitted');
+    });
 }
-if (cropper) {
-const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
-if (!canvas) {
-alert('Impossible de recadrer cette image. Essayez-en une autre.');
-e.preventDefault();
-return;
-}
-imageBase64.value = canvas.toDataURL('image/jpeg', 0.8); // JPEG 80%
-} else {
-imageBase64.value = '';
-}
-// Disable the submit to avoid double posts and show loader
-searchBtn.disabled = true;
-loaderOverlay.style.display = 'flex';
-loaderOverlay.setAttribute('aria-hidden', 'false');
-});
+
+console.log('JavaScript initialized successfully');
+}); // End of DOMContentLoaded
 </script>
 </body>
 </html>
