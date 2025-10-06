@@ -527,6 +527,7 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
 .card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; }
 label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px }
 .stack{ display:flex; flex-direction:column; gap:12px }
+.mode-group{ display:flex; gap:8px; position: relative; z-index: 1; }
 /* Inputs */
 select, .btn{ 
     appearance:none; 
@@ -536,9 +537,9 @@ select, .btn{
     font-size:14px; 
     background:#fff; 
     cursor:pointer; 
-    pointer-events: auto; 
+    pointer-events: auto !important; 
     position: relative; 
-    z-index: 10; 
+    z-index: 10 !important;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -558,7 +559,6 @@ select, .btn{
 .btn-primary:active{ 
     transform: translateY(0px); 
 }
-.mode-group{ display:flex; gap:8px }
 .mode-btn{ 
     flex:1; 
     text-align:center; 
@@ -570,30 +570,19 @@ select, .btn{
     font-weight:600; 
     font-size:13px; 
     transition: all 0.2s ease; 
-    pointer-events: auto; 
+    pointer-events: auto !important; 
     position: relative; 
-    z-index: 10; 
+    z-index: 10 !important;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
 }
-.mode-btn:hover{ 
-    background:#f0edff; 
-    transform: translateY(-1px); 
-    box-shadow: 0 2px 8px rgba(123,92,255,0.15);
-}
-.mode-btn:active{ 
-    transform: translateY(0px); 
-}
-.mode-btn[data-active="true"]{ 
-    background: linear-gradient(90deg, var(--violet-1), var(--violet-2)); 
-    color:#fff; 
-    border-color:transparent; 
-    box-shadow:0 6px 14px rgba(123,92,255,.35); 
-}
+.mode-btn:hover{ background:#f0edff; transform: translateY(-1px); }
+.mode-btn:active{ transform: translateY(0px); }
+.mode-btn[data-active="true"]{ background: linear-gradient(90deg, var(--violet-1), var(--violet-2)); color:#fff; border-color:transparent; box-shadow:0 6px 14px rgba(123,92,255,.35) }
 /* Drop zone */
-.dropzone{ border:2px dashed #d9d6ff; background: #fbfaff; border-radius:16px; padding:24px; text-align:center; transition: border-color .2s ease, background .2s ease; }
+.dropzone{ border:2px dashed #d9d6ff; background: #fbfaff; border-radius:16px; padding:24px; text-align:center; transition: border-color .2s ease, background .2s ease; position: relative; }
 .dropzone.dragover{ border-color: var(--violet-1); background:#f4f1ff }
 .dz-title{ font-weight:700; margin-bottom:6px }
 .dz-sub{ color:var(--muted); font-size:13px; margin-bottom:12px }
@@ -708,57 +697,51 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <script>
 console.log('Script loading...');
 
-function debugElements() {
-    console.log('=== DEBUG: Checking DOM elements ===');
-    console.log('modeGroup:', document.getElementById('modeGroup'));
-    console.log('modeInput:', document.getElementById('modeInput'));
-    console.log('pickBtn:', document.getElementById('pickBtn'));
-    console.log('fileInput:', document.getElementById('fileInput'));
-    console.log('dropzone:', document.getElementById('dropzone'));
-    console.log('form:', document.getElementById('searchForm'));
-    console.log('=====================================');
-}
-
-function initApp() {
-    console.log('Initializing app...');
-    debugElements();
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
     
-    // Mode buttons
+    // Debug: Check if elements exist
     const modeGroup = document.getElementById('modeGroup');
     const modeInput = document.getElementById('modeInput');
-    console.log('Mode group found:', !!modeGroup);
-    console.log('Mode input found:', !!modeInput);
-
+    const pickBtn = document.getElementById('pickBtn');
+    const fileInput = document.getElementById('fileInput');
+    
+    console.log('Elements found:');
+    console.log('- modeGroup:', !!modeGroup);
+    console.log('- modeInput:', !!modeInput);
+    console.log('- pickBtn:', !!pickBtn);
+    console.log('- fileInput:', !!fileInput);
+    
+    // Mode buttons
     if (modeGroup && modeInput) {
+        console.log('Setting up mode buttons...');
         modeGroup.addEventListener('click', function(e) {
-            console.log('Mode group clicked');
+            console.log('Mode group clicked, target:', e.target);
             const btn = e.target.closest('.mode-btn');
-            if (!btn) return;
+            if(!btn) {
+                console.log('No mode button found');
+                return;
+            }
             console.log('Mode button clicked:', btn.getAttribute('data-mode'));
-            
-            // Remove active from all buttons
-            const allBtns = modeGroup.querySelectorAll('.mode-btn');
-            allBtns.forEach(b => b.removeAttribute('data-active'));
-            
-            // Set active on clicked button
-            btn.setAttribute('data-active', 'true');
+            [...modeGroup.querySelectorAll('.mode-btn')].forEach(b=>b.removeAttribute('data-active'));
+            btn.setAttribute('data-active','true');
             modeInput.value = btn.getAttribute('data-mode');
             console.log('Mode changed to:', modeInput.value);
         });
+    } else {
+        console.error('Mode elements not found!');
     }
 
     // File upload button
-    const pickBtn = document.getElementById('pickBtn');
-    const fileInput = document.getElementById('fileInput');
-    console.log('Pick button found:', !!pickBtn);
-    console.log('File input found:', !!fileInput);
-
     if (pickBtn && fileInput) {
+        console.log('Setting up file picker button...');
         pickBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('Pick button clicked');
             fileInput.click();
         });
+    } else {
+        console.error('File picker elements not found!');
     }
 
     // Other elements
@@ -771,121 +754,120 @@ function initApp() {
     const loaderOverlay = document.getElementById('loaderOverlay');
     let cropper = null;
 
-    function handleFile(file) {
-        if (!file) return;
-        console.log('Handling file:', file.name, file.size);
-        
-        if (file.size > 64 * 1024 * 1024) {
-            alert('Fichier trop volumineux. Sélectionnez une image < 64 Mo.');
-            fileInput.value = '';
-            if (imageBase64) imageBase64.value = '';
-            if (cropper) { 
-                cropper.destroy(); 
-                cropper = null; 
-            }
-            if (cropperArea) cropperArea.style.display = 'none';
-            if (preview) preview.src = '';
+function handleFile(file){
+    if(!file) return;
+    console.log('Handling file:', file.name, file.size);
+    
+    if (file.size > 64 * 1024 * 1024) {
+        alert('Fichier trop volumineux. Sélectionnez une image < 64 Mo.');
+        fileInput.value = '';
+        imageBase64.value = '';
+        if (cropper) { cropper.destroy(); cropper = null; }
+        if (cropperArea) cropperArea.style.display = 'none';
+        if (preview) preview.src = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e){
+        if (preview) {
+            preview.src = e.target.result;
+            if (cropperArea) cropperArea.style.display = 'block';
+            if (cropper) { cropper.destroy(); cropper = null; }
+            cropper = new Cropper(preview, {
+                viewMode: 1,
+                aspectRatio: 1,
+                dragMode: 'move',
+                autoCropArea: 1.0,
+                responsive: true,
+                background: false,
+            });
+            console.log('Cropper initialized');
+        }
+    }
+    reader.readAsDataURL(file);
+}
+
+if (fileInput) {
+    fileInput.addEventListener('change', () => handleFile(fileInput.files && fileInput.files[0]));
+}
+
+// Drag and drop functionality
+if (dropzone) {
+    ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+    }) );
+    
+    ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+    }) );
+    
+    dropzone.addEventListener('drop', e=>{
+        const f = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) {
+            console.log('File dropped:', f.name);
+            // keep the file in the input for form submission
+            const dt = new DataTransfer();
+            dt.items.add(f);
+            if (fileInput) fileInput.files = dt.files;
+            handleFile(f);
+        }
+    });
+}
+
+// Show loader on submit and embed cropped image
+if (form && searchBtn && loaderOverlay) {
+    form.addEventListener('submit', function(e){
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if(!file){
+            alert('Veuillez d'abord sélectionner une image.');
+            e.preventDefault();
             return;
         }
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            if (preview) {
-                preview.src = e.target.result;
-                if (cropperArea) cropperArea.style.display = 'block';
-                if (cropper) { 
-                    cropper.destroy(); 
-                    cropper = null; 
-                }
-                cropper = new Cropper(preview, {
-                    viewMode: 1,
-                    aspectRatio: 1,
-                    dragMode: 'move',
-                    autoCropArea: 1.0,
-                    responsive: true,
-                    background: false,
-                });
-                console.log('Cropper initialized');
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
-    if (fileInput) {
-        fileInput.addEventListener('change', function() {
-            handleFile(fileInput.files && fileInput.files[0]);
-        });
-    }
-
-    // Drag and drop
-    if (dropzone) {
-        dropzone.addEventListener('dragenter', function(e) {
-            e.preventDefault();
-            dropzone.classList.add('dragover');
-        });
-        
-        dropzone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            dropzone.classList.add('dragover');
-        });
-        
-        dropzone.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-        });
-        
-        dropzone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            dropzone.classList.remove('dragover');
-            const f = e.dataTransfer.files && e.dataTransfer.files[0];
-            if (f) {
-                console.log('File dropped:', f.name);
-                const dt = new DataTransfer();
-                dt.items.add(f);
-                if (fileInput) fileInput.files = dt.files;
-                handleFile(f);
-            }
-        });
-    }
-
-    // Form submission
-    if (form && searchBtn && loaderOverlay) {
-        form.addEventListener('submit', function(e) {
-            const file = fileInput && fileInput.files && fileInput.files[0];
-            if (!file) {
-                alert('Veuillez d'abord sélectionner une image.');
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
+            if (!canvas) {
+                alert('Impossible de recadrer cette image. Essayez-en une autre.');
                 e.preventDefault();
                 return;
             }
-            
-            if (cropper) {
-                const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
-                if (!canvas) {
-                    alert('Impossible de recadrer cette image. Essayez-en une autre.');
-                    e.preventDefault();
-                    return;
-                }
-                if (imageBase64) imageBase64.value = canvas.toDataURL('image/jpeg', 0.8);
-            } else {
-                if (imageBase64) imageBase64.value = '';
-            }
-            
-            searchBtn.disabled = true;
-            loaderOverlay.style.display = 'flex';
-            loaderOverlay.setAttribute('aria-hidden', 'false');
-            console.log('Form submitted');
+            if (imageBase64) imageBase64.value = canvas.toDataURL('image/jpeg', 0.8); // JPEG 80%
+        } else {
+            if (imageBase64) imageBase64.value = '';
+        }
+        
+        // Disable the submit to avoid double posts and show loader
+        searchBtn.disabled = true;
+        loaderOverlay.style.display = 'flex';
+        loaderOverlay.setAttribute('aria-hidden', 'false');
+        console.log('Form submitted');
+    });
+}
+
+    // Test direct click on mode buttons
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    console.log('Found mode buttons:', modeButtons.length);
+    modeButtons.forEach((btn, index) => {
+        console.log(`Button ${index}:`, btn.textContent, 'data-mode:', btn.getAttribute('data-mode'));
+        btn.addEventListener('click', function(e) {
+            console.log('Direct click on mode button:', this.textContent);
+        });
+    });
+    
+    // Test direct click on pick button
+    if (pickBtn) {
+        pickBtn.addEventListener('click', function(e) {
+            console.log('Direct click on pick button');
         });
     }
 
-    console.log('App initialized successfully');
-}
-
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
+    console.log('JavaScript initialized successfully');
+}); // End of DOMContentLoaded
 </script>
 </body>
 </html>
