@@ -1,0 +1,5 @@
+pinecone>=5,<6
+flask
+pillow
+numpy
+gunicorn
