@@ -632,9 +632,9 @@ select, .btn{
 <div>
 <label>Mode</label>
 <div class="mode-group" id="modeGroup">
-<button type="button" class="mode-btn" data-mode="full">Façade entière</button>
-<button type="button" class="mode-btn" data-mode="mid" data-active="true">Immeuble partiel</button>
-<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
+<button type="button" class="mode-btn" data-mode="full" onclick="console.log('Direct click: full')">Façade entière</button>
+<button type="button" class="mode-btn" data-mode="mid" data-active="true" onclick="console.log('Direct click: mid')">Immeuble partiel</button>
+<button type="button" class="mode-btn" data-mode="detail" onclick="console.log('Direct click: detail')">Détail architectural</button>
 </div>
 <input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
@@ -643,7 +643,7 @@ select, .btn{
 <div class="dropzone" id="dropzone">
 <div class="dz-title">Glissez-déposez une image</div>
 <div class="dz-sub">ou</div>
-<button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
+<button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput" onclick="console.log('Direct click: pickBtn'); document.getElementById('fileInput').click();">Téléchargez une image</button>
 <input class="hidden-input" type="file" id="fileInput" name="image" accept="image/*" required>
 </div>
 <!-- Hidden by default: no empty preview shown -->
@@ -695,179 +695,180 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 </div>
 <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
-console.log('Script loading...');
+// Simple, robust approach
+console.log('=== SCRIPT LOADING ===');
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded');
+// Wait for everything to be ready
+window.addEventListener('load', function() {
+    console.log('=== WINDOW LOADED ===');
     
-    // Debug: Check if elements exist
-    const modeGroup = document.getElementById('modeGroup');
-    const modeInput = document.getElementById('modeInput');
-    const pickBtn = document.getElementById('pickBtn');
-    const fileInput = document.getElementById('fileInput');
-    
-    console.log('Elements found:');
-    console.log('- modeGroup:', !!modeGroup);
-    console.log('- modeInput:', !!modeInput);
-    console.log('- pickBtn:', !!pickBtn);
-    console.log('- fileInput:', !!fileInput);
-    
-    // Mode buttons
-    if (modeGroup && modeInput) {
-        console.log('Setting up mode buttons...');
-        modeGroup.addEventListener('click', function(e) {
-            console.log('Mode group clicked, target:', e.target);
-            const btn = e.target.closest('.mode-btn');
-            if(!btn) {
-                console.log('No mode button found');
-                return;
-            }
-            console.log('Mode button clicked:', btn.getAttribute('data-mode'));
-            [...modeGroup.querySelectorAll('.mode-btn')].forEach(b=>b.removeAttribute('data-active'));
-            btn.setAttribute('data-active','true');
-            modeInput.value = btn.getAttribute('data-mode');
-            console.log('Mode changed to:', modeInput.value);
-        });
-    } else {
-        console.error('Mode elements not found!');
-    }
-
-    // File upload button
-    if (pickBtn && fileInput) {
-        console.log('Setting up file picker button...');
-        pickBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('Pick button clicked');
-            fileInput.click();
-        });
-    } else {
-        console.error('File picker elements not found!');
-    }
-
-    // Other elements
-    const dropzone = document.getElementById('dropzone');
-    const cropperArea = document.getElementById('cropperArea');
-    const preview = document.getElementById('preview');
-    const imageBase64 = document.getElementById('imageBase64');
-    const form = document.getElementById('searchForm');
-    const searchBtn = document.getElementById('searchBtn');
-    const loaderOverlay = document.getElementById('loaderOverlay');
-    let cropper = null;
-
-function handleFile(file){
-    if(!file) return;
-    console.log('Handling file:', file.name, file.size);
-    
-    if (file.size > 64 * 1024 * 1024) {
-        alert('Fichier trop volumineux. Sélectionnez une image < 64 Mo.');
-        fileInput.value = '';
-        imageBase64.value = '';
-        if (cropper) { cropper.destroy(); cropper = null; }
-        if (cropperArea) cropperArea.style.display = 'none';
-        if (preview) preview.src = '';
-        return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = function(e){
-        if (preview) {
-            preview.src = e.target.result;
-            if (cropperArea) cropperArea.style.display = 'block';
-            if (cropper) { cropper.destroy(); cropper = null; }
-            cropper = new Cropper(preview, {
-                viewMode: 1,
-                aspectRatio: 1,
-                dragMode: 'move',
-                autoCropArea: 1.0,
-                responsive: true,
-                background: false,
+    // Simple function to setup everything
+    function setupApp() {
+        console.log('=== SETTING UP APP ===');
+        
+        // Get elements
+        const modeGroup = document.getElementById('modeGroup');
+        const modeInput = document.getElementById('modeInput');
+        const pickBtn = document.getElementById('pickBtn');
+        const fileInput = document.getElementById('fileInput');
+        const dropzone = document.getElementById('dropzone');
+        const form = document.getElementById('searchForm');
+        
+        console.log('Elements found:');
+        console.log('modeGroup:', modeGroup);
+        console.log('modeInput:', modeInput);
+        console.log('pickBtn:', pickBtn);
+        console.log('fileInput:', fileInput);
+        
+        // Setup mode buttons - SIMPLE APPROACH
+        if (modeGroup) {
+            console.log('Setting up mode buttons...');
+            
+            // Add click to each button individually
+            const modeButtons = modeGroup.querySelectorAll('.mode-btn');
+            console.log('Found', modeButtons.length, 'mode buttons');
+            
+            modeButtons.forEach(function(btn) {
+                console.log('Setting up button:', btn.textContent);
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Mode button clicked:', this.textContent);
+                    
+                    // Remove active from all
+                    modeButtons.forEach(b => b.removeAttribute('data-active'));
+                    
+                    // Set active on this one
+                    this.setAttribute('data-active', 'true');
+                    
+                    // Update hidden input
+                    if (modeInput) {
+                        modeInput.value = this.getAttribute('data-mode');
+                        console.log('Mode set to:', modeInput.value);
+                    }
+                });
             });
-            console.log('Cropper initialized');
         }
+        
+        // Setup file picker - SIMPLE APPROACH
+        if (pickBtn && fileInput) {
+            console.log('Setting up file picker...');
+            pickBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Pick button clicked');
+                fileInput.click();
+            });
+        }
+        
+        // Setup file input change
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                console.log('File selected:', this.files[0]);
+                if (this.files[0]) {
+                    handleFileUpload(this.files[0]);
+                }
+            });
+        }
+        
+        // Setup drag and drop
+        if (dropzone) {
+            dropzone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            dropzone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            dropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    console.log('File dropped:', file.name);
+                    if (fileInput) fileInput.files = e.dataTransfer.files;
+                    handleFileUpload(file);
+                }
+            });
+        }
+        
+        // Setup form submission
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                console.log('Form submitted');
+                const file = fileInput && fileInput.files && fileInput.files[0];
+                if (!file) {
+                    alert('Veuillez sélectionner une image.');
+                    e.preventDefault();
+                    return;
+                }
+                
+                // Handle cropped image if cropper exists
+                if (window.cropper) {
+                    const canvas = window.cropper.getCroppedCanvas({ width: 512, height: 512 });
+                    if (canvas) {
+                        const imageBase64 = document.getElementById('imageBase64');
+                        if (imageBase64) {
+                            imageBase64.value = canvas.toDataURL('image/jpeg', 0.8);
+                        }
+                    }
+                }
+                
+                // Show loader
+                const loaderOverlay = document.getElementById('loaderOverlay');
+                if (loaderOverlay) {
+                    loaderOverlay.style.display = 'flex';
+                }
+            });
+        }
+        
+        console.log('=== APP SETUP COMPLETE ===');
     }
-    reader.readAsDataURL(file);
-}
-
-if (fileInput) {
-    fileInput.addEventListener('change', () => handleFile(fileInput.files && fileInput.files[0]));
-}
-
-// Drag and drop functionality
-if (dropzone) {
-    ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.add('dragover');
-    }) );
     
-    ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, e => {
-        e.preventDefault();
-        e.stopPropagation();
-        dropzone.classList.remove('dragover');
-    }) );
-    
-    dropzone.addEventListener('drop', e=>{
-        const f = e.dataTransfer.files && e.dataTransfer.files[0];
-        if (f) {
-            console.log('File dropped:', f.name);
-            // keep the file in the input for form submission
-            const dt = new DataTransfer();
-            dt.items.add(f);
-            if (fileInput) fileInput.files = dt.files;
-            handleFile(f);
-        }
-    });
-}
-
-// Show loader on submit and embed cropped image
-if (form && searchBtn && loaderOverlay) {
-    form.addEventListener('submit', function(e){
-        const file = fileInput && fileInput.files && fileInput.files[0];
-        if(!file){
-            alert('Veuillez d'abord sélectionner une image.');
-            e.preventDefault();
+    // Simple file handling
+    function handleFileUpload(file) {
+        console.log('Handling file:', file.name, file.size);
+        
+        if (file.size > 64 * 1024 * 1024) {
+            alert('Fichier trop volumineux.');
             return;
         }
         
-        if (cropper) {
-            const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
-            if (!canvas) {
-                alert('Impossible de recadrer cette image. Essayez-en une autre.');
-                e.preventDefault();
-                return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('preview');
+            const cropperArea = document.getElementById('cropperArea');
+            
+            if (preview && cropperArea) {
+                preview.src = e.target.result;
+                cropperArea.style.display = 'block';
+                
+                // Initialize cropper
+                if (window.cropper) {
+                    window.cropper.destroy();
+                }
+                window.cropper = new Cropper(preview, {
+                    viewMode: 1,
+                    aspectRatio: 1,
+                    dragMode: 'move',
+                    autoCropArea: 1.0,
+                    responsive: true,
+                    background: false,
+                });
+                console.log('Cropper initialized');
             }
-            if (imageBase64) imageBase64.value = canvas.toDataURL('image/jpeg', 0.8); // JPEG 80%
-        } else {
-            if (imageBase64) imageBase64.value = '';
-        }
-        
-        // Disable the submit to avoid double posts and show loader
-        searchBtn.disabled = true;
-        loaderOverlay.style.display = 'flex';
-        loaderOverlay.setAttribute('aria-hidden', 'false');
-        console.log('Form submitted');
-    });
-}
-
-    // Test direct click on mode buttons
-    const modeButtons = document.querySelectorAll('.mode-btn');
-    console.log('Found mode buttons:', modeButtons.length);
-    modeButtons.forEach((btn, index) => {
-        console.log(`Button ${index}:`, btn.textContent, 'data-mode:', btn.getAttribute('data-mode'));
-        btn.addEventListener('click', function(e) {
-            console.log('Direct click on mode button:', this.textContent);
-        });
-    });
-    
-    // Test direct click on pick button
-    if (pickBtn) {
-        pickBtn.addEventListener('click', function(e) {
-            console.log('Direct click on pick button');
-        });
+        };
+        reader.readAsDataURL(file);
     }
+    
+    // Start the app
+    setupApp();
+});
 
-    console.log('JavaScript initialized successfully');
-}); // End of DOMContentLoaded
+console.log('=== SCRIPT LOADED ===');
 </script>
 </body>
 </html>
