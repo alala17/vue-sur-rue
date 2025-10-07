@@ -730,9 +730,9 @@ select, .btn{
 <div>
 <label>Étape 2 - Sélectionnez le mode</label>
 <div class="mode-group" id="modeGroup">
-<button type="button" class="mode-btn" data-mode="full">Façade</button>
-<button type="button" class="mode-btn" data-mode="mid" data-active="true">Façade Partielle</button>
-<button type="button" class="mode-btn" data-mode="detail">Élément Architectural</button>
+<button type="button" class="mode-btn" data-mode="full">Bâtiment entier</button>
+<button type="button" class="mode-btn" data-mode="mid" data-active="true">Partie du bâtiment</button>
+<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
 </div>
 <input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
@@ -745,7 +745,7 @@ select, .btn{
 <button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
 <input class="hidden-input" type="file" id="fileInput" name="image" accept="image/*" required>
 <div class="dropzone-info">
-Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : façade entière, façade partielle ou élément architectural. Priorisez des éléments visibles depuis la rue. Évitez toitures et éléments non visibles depuis la rue par un humain.
+Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : bâtiment entier, partie du bâtiment ou détail architectural. Priorisez des éléments visibles depuis la rue. Évitez toitures et éléments non visibles depuis la rue par un humain.
 </div>
 </div>
 <!-- Hidden by default: no empty preview shown -->
