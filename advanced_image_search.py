@@ -35,9 +35,9 @@ TOPL_L = _get_topL_default()
 
 # ---- Mode presets (fixed Top-L, no adaptive) ----
 MODE_PRESETS = {
-    "full": {"alpha": 0.75, "L_top": 120, "one_way": False, "windowed": False},
-    "mid": {"alpha": 0.50, "L_top": 80, "one_way": False, "windowed": False},
-    "detail": {"alpha": 0.20, "L_top": 16, "one_way": True, "windowed": False},  # speed
+    "full":   {"alpha": 0.75, "L_top": 120, "one_way": False, "windowed": False, "q_grid": 16},
+    "mid":    {"alpha": 0.50, "L_top":  48, "one_way": False, "windowed": False, "q_grid":  8},
+    "detail": {"alpha": 0.20, "L_top":  12, "one_way": True,  "windowed": False, "q_grid":  4},
 }
 
 @dataclass
@@ -181,10 +181,60 @@ def vectorize_query_image_like_database(image: Image.Image) -> Tuple[torch.Tenso
     return v_gem, v_cls
 
 def vectorize_query_tokens_512(image: Image.Image) -> torch.Tensor:
+    """Legacy function - uses full 16x16 grid"""
     model, device, transform, _ = get_dinov2_model()
     t = transform(image).unsqueeze(0).to(device)
     tokens = _extract_features(t)
     grid = tokens[:, 1:, :].squeeze(0)
+    q_tokens_512 = _project_512_and_l2(grid)
+    q_tokens_512 = _clean(q_tokens_512).detach().cpu()
+    return q_tokens_512
+
+# === Multi-scale query vectorization ===
+def _pool_tokens_grid(grid_tokens: torch.Tensor, H_out: int, W_out: int, method: str = "avg", p: float = 3.0) -> torch.Tensor:
+    """
+    Pool a 16x16 grid of tokens to a smaller HxW grid.
+    grid_tokens: (N_tokens=256, D) with H=W=16 (at 224x224)
+    Returns: (H_out*W_out, D)
+    """
+    device = grid_tokens.device
+    D = grid_tokens.shape[-1]
+    # reshape (256, D) -> (16, 16, D) -> (1, D, 16, 16)
+    hwD = grid_tokens.view(16, 16, D).permute(2, 0, 1).unsqueeze(0)  # (1, D, 16, 16)
+    
+    if method == "gem":
+        eps = 1e-6
+        x = torch.clamp(hwD, min=eps).pow(p)
+        x = torch.nn.functional.adaptive_avg_pool2d(x, (H_out, W_out))
+        x = x.pow(1.0 / p)
+    else:  # avg
+        x = torch.nn.functional.adaptive_avg_pool2d(hwD, (H_out, W_out))
+    
+    # (1, D, H_out, W_out) -> (H_out, W_out, D) -> (H_out*W_out, D)
+    x = x.squeeze(0).permute(1, 2, 0).contiguous().view(H_out * W_out, D)
+    return x.to(device)
+
+def vectorize_query_tokens_512_with_grid(image: Image.Image, q_grid: int) -> torch.Tensor:
+    """
+    Vectorize query image with adaptive grid size for multi-scale matching.
+    Keeps 224x224 resolution but pools tokens to q_grid x q_grid.
+    
+    q_grid: 16 (full, 256 tokens), 8 (mid, 64 tokens), or 4 (detail, 16 tokens)
+    """
+    # Keep 224x224 input size
+    model, device, transform, _ = get_dinov2_model()
+    t = transform(image).unsqueeze(0).to(device)
+    tokens = _extract_features(t)  # (1, 1+256, D)
+    grid = tokens[:, 1:, :].squeeze(0)  # (256, D) = 16*16
+    
+    # Validate and apply pooling if needed
+    if q_grid not in (16, 8, 4):
+        q_grid = 16
+    
+    if q_grid < 16:
+        grid = _pool_tokens_grid(grid, q_grid, q_grid, method="avg")
+    
+    # Project to 512D and L2 normalize
     q_tokens_512 = _project_512_and_l2(grid)
     q_tokens_512 = _clean(q_tokens_512).detach().cpu()
     return q_tokens_512
@@ -383,11 +433,13 @@ def database_matching_search_pipeline(
     L_top = preset["L_top"]
     one_way = preset["one_way"]
     windowed = preset["windowed"]
+    q_grid = preset.get("q_grid", 16)
 
     pc_client, pinecone_index = get_pinecone_client()
     if pinecone_index is None:
         return []
 
+    # Global vectors (unchanged): same for all modes
     q_gem, q_cls = vectorize_query_image_like_database(image)
 
     gem_candidates = coarse_retrieval_gem(q_gem, namespace, k_coarse=k_coarse)
@@ -422,7 +474,8 @@ def database_matching_search_pipeline(
         if cls_vec is not None:
             by_uid[uid]["cls_score"] = max(by_uid[uid]["cls_score"], cosine_np(q_cls_np, cls_vec))
 
-    q_tokens_512 = None if windowed else vectorize_query_tokens_512(image)
+    # Local vectors: use adaptive grid size based on mode
+    q_tokens_512 = None if windowed else vectorize_query_tokens_512_with_grid(image, q_grid)
 
     ranked: List[Tuple[str, float, float, str, float, float, Dict]] = []
     for uid, rec in by_uid.items():
@@ -431,13 +484,14 @@ def database_matching_search_pipeline(
         coarse = gem if gem >= cls else cls
         channel = "global_gem" if gem >= cls else "global_cls"
 
-        cand_tokens = fetch_candidate_tokens_512(pinecone_index, namespace, uid)
+        cand_tokens = fetch_candidate_tokens_512(pinecone_index, namespace, uid)  # Always 16x16=256 from DB
         if cand_tokens is None:
             local = coarse
         else:
             if windowed:
                 local = best_local_score_over_crops(image, cand_tokens, L=L_top, one_way=one_way)
             else:
+                # Chamfer works with different sizes (Q×C): query can be smaller than candidate
                 local = (local_chamfer_one_way_topL(q_tokens_512, cand_tokens, L=L_top)
                          if one_way else local_chamfer_score_topL(q_tokens_512, cand_tokens, L=L_top))
 
