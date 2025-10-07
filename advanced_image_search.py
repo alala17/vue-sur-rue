@@ -835,7 +835,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[FILE] Handling file:', file.name, file.size, 'bytes');
             
             if (file.size > 64 * 1024 * 1024) {
-                alert('Fichier trop volumineux. Sélectionnez une image < 64 Mo.');
+                alert("Fichier trop volumineux. Sélectionnez une image < 64 Mo.");
                 fileInput.value = '';
                 imageBase64.value = '';
                 if (cropper) {
@@ -912,7 +912,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             form.addEventListener('submit', function(e) {
                 const file = fileInput && fileInput.files && fileInput.files[0];
                 if (!file) {
-                    alert('Veuillez d'abord sélectionner une image.');
+                    alert("Veuillez d'abord sélectionner une image.");
                     e.preventDefault();
                     return;
                 }
@@ -920,7 +920,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 if (cropper) {
                     const canvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
                     if (!canvas) {
-                        alert('Impossible de recadrer cette image. Essayez-en une autre.');
+                        alert("Impossible de recadrer cette image. Essayez-en une autre.");
                         e.preventDefault();
                         return;
                     }
