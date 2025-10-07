@@ -693,8 +693,8 @@ select, .btn{
 .result-card{ border:1px solid var(--border); padding:0; border-radius:14px; background:#fff; overflow:hidden; display:flex; flex-direction:column; min-height:120px; }
 .sv-wrap{ position:relative }
 .sv-iframe{ border:0; width:100%; height:260px; display:block; background:#f4f1ff; }
-/* New: rank below the map, purple, not overlaying the map */
-.rank-tag{ display:inline-block; margin:10px 12px 4px; padding:6px 10px; border-radius:999px; border:1px solid #e6e0ff; background:#f7f4ff; color:var(--violet-1); font-weight:800; font-size:12px; line-height:1; align-self:flex-start; }
+/* Rank above the map, purple */
+.rank-tag{ display:inline-block; margin:12px 12px 8px; padding:6px 10px; border-radius:999px; border:1px solid #e6e0ff; background:#f7f4ff; color:var(--violet-1); font-weight:800; font-size:12px; line-height:1; align-self:flex-start; }
 /* Loader overlay */
 .loader-overlay{ position: fixed; inset: 0; background: rgba(255,255,255,.75); display:none; align-items:center; justify-content:center; z-index: 9999; backdrop-filter: blur(1px); pointer-events: none; }
 .loader-overlay[style*="display: flex"]{ pointer-events: auto; }
@@ -775,17 +775,16 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 {% for r in results[:5] %}
 <div class="result-card">
 {% set rank = loop.index %}
+<!-- Rank above the map, purple -->
+<div class="rank-tag">#{{ rank }}</div>
 {% if r.street_view_src %}
 <div class="sv-wrap">
 <iframe class="sv-iframe" title="Street View {{ rank }}" src="{{ r.street_view_src }}" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade" ></iframe>
 </div>
-<!-- Rank below the map, purple -->
-<div class="rank-tag">#{{ rank }}</div>
 {% else %}
 <div class="sv-wrap" style="pointer-events:none;opacity:.75;">
 <div class="sv-iframe" role="img" aria-label="Street View indisponible"></div>
 </div>
-<div class="rank-tag">#{{ rank }}</div>
 {% endif %}
 </div>
 {% endfor %}
