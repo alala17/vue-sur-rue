@@ -606,7 +606,8 @@ select, .btn{
 /* New: rank below the map, purple, not overlaying the map */
 .rank-tag{ display:inline-block; margin:10px 12px 4px; padding:6px 10px; border-radius:999px; border:1px solid #e6e0ff; background:#f7f4ff; color:var(--violet-1); font-weight:800; font-size:12px; line-height:1; align-self:flex-start; }
 /* Loader overlay */
-.loader-overlay{ position: fixed; inset: 0; background: rgba(255,255,255,.75); display:none; align-items:center; justify-content:center; z-index: 9999; backdrop-filter: blur(1px); }
+.loader-overlay{ position: fixed; inset: 0; background: rgba(255,255,255,.75); display:none; align-items:center; justify-content:center; z-index: 9999; backdrop-filter: blur(1px); pointer-events: none; }
+.loader-overlay[style*="display: flex"]{ pointer-events: auto; }
 .loader{ width: 64px; height: 64px; border-radius: 50%; border: 6px solid #e9e3ff; border-top-color: var(--violet-1); animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 /* Info banner */
@@ -702,8 +703,57 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     'use strict';
     console.log('[INIT] Script loading...');
     
+    // DEBUG: Check for overlays
+    function checkForOverlays() {
+        console.log('[DEBUG] Checking for overlay issues...');
+        const allElements = document.querySelectorAll('*');
+        const problematic = [];
+        
+        allElements.forEach(el => {
+            const style = window.getComputedStyle(el);
+            const zIndex = parseInt(style.zIndex);
+            const position = style.position;
+            const pointerEvents = style.pointerEvents;
+            
+            // Check for high z-index elements that might block
+            if (zIndex > 100 && position === 'fixed' && pointerEvents !== 'none') {
+                problematic.push({
+                    element: el,
+                    tagName: el.tagName,
+                    id: el.id,
+                    className: el.className,
+                    zIndex: zIndex,
+                    position: position,
+                    pointerEvents: pointerEvents,
+                    display: style.display
+                });
+            }
+        });
+        
+        if (problematic.length > 0) {
+            console.warn('[DEBUG] Found potentially blocking elements:', problematic);
+        } else {
+            console.log('[DEBUG] No obvious overlay issues found');
+        }
+    }
+    
     function initApp() {
         console.log('[INIT] Initializing app...');
+        
+        // Run overlay check
+        checkForOverlays();
+        
+        // DEBUG: Add global click listener to see what's being clicked
+        document.addEventListener('click', function(e) {
+            console.log('[GLOBAL CLICK]', {
+                target: e.target,
+                tagName: e.target.tagName,
+                id: e.target.id,
+                className: e.target.className,
+                x: e.clientX,
+                y: e.clientY
+            });
+        }, true); // Use capture phase
         
         // Get all elements
         const modeGroup = document.getElementById('modeGroup');
