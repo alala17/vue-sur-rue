@@ -577,7 +577,10 @@ form{ position: relative; z-index: 1; }
 .hero{ background:#ffffff; color:var(--violet-1); padding: 28px 20px 18px; border-bottom: 1px solid var(--border); }
 .hero-inner{ max-width: 1100px; margin: 0 auto; display:flex; align-items:center; gap:16px; }
 .hero-badge{ width:44px;height:44px;border-radius:12px;background:#f5f1ff;display:flex;align-items:center;justify-content:center; border:1px solid #e6e0ff; font-size:22px; color:var(--violet-1); }
-.hero h1{ margin:0; font-size: 22px; font-weight: 800; line-height:1.25; color:var(--violet-1); }
+.hero-text{ display:flex; flex-direction:column; gap:4px; }
+.hero-tagline{ font-size: 14px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; color: #a076ff; margin:0; }
+.hero-title{ margin:0; font-size: 24px; font-weight: 700; line-height:1.2; color:var(--violet-1); }
+.hero-subtitle{ margin:0; font-size: 24px; font-weight: 500; line-height:1.2; color: #6b46ff; opacity: 0.85; }
 .container{ max-width:1100px; margin: 16px auto 40px; padding: 0 20px; }
 .card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; position: relative; z-index: 1; }
 label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px; position: relative; z-index: 1; }
@@ -704,7 +707,11 @@ select, .btn{
 <div class="hero">
 <div class="hero-inner">
 <div class="hero-badge">📍</div>
-<h1>Vue sur Rue — retrouvez l'adresse d'une annonce immo à partir d'une photo</h1>
+<div class="hero-text">
+<div class="hero-tagline">VUE SUR RUE</div>
+<h1 class="hero-title">Retrouvez l'adresse d'une annonce immo</h1>
+<div class="hero-subtitle">à partir d'une photo</div>
+</div>
 </div>
 </div>
 <div class="container">
