@@ -581,7 +581,7 @@ form{ position: relative; z-index: 1; }
 .container{ max-width:1100px; margin: 16px auto 40px; padding: 0 20px; }
 .card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; position: relative; z-index: 1; }
 label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px; position: relative; z-index: 1; }
-.stack{ display:flex; flex-direction:column; gap:12px; position: relative; z-index: 1; }
+.stack{ display:flex; flex-direction:column; gap:24px; position: relative; z-index: 1; }
 .mode-group{ display:flex; gap:10px; position: relative; z-index: 100; justify-content: flex-start; }
 /* Inputs */
 select, .btn{ 
@@ -605,7 +605,7 @@ select, .btn{
     background:var(--violet-1); 
     border-color:transparent; 
     color:#fff; 
-    font-weight:600; 
+    font-weight:normal; 
     transition: transform .05s ease, box-shadow .2s ease; 
 }
 .btn-primary:hover{ 
@@ -623,7 +623,7 @@ select, .btn{
     border:1px solid var(--border); 
     background:#faf9ff; 
     cursor:pointer !important; 
-    font-weight:600; 
+    font-weight:normal; 
     font-size:13px; 
     transition: all 0.2s ease; 
     pointer-events: auto !important; 
