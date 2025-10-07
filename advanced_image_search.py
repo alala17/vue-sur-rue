@@ -606,15 +606,16 @@ select, .btn{
     touch-action: manipulation;
 }
 .btn-primary{ 
-    background:var(--violet-1); 
-    border-color:transparent; 
-    color:#fff; 
+    background:transparent; 
+    border-color:var(--violet-1); 
+    border-width:2px;
+    color:var(--violet-1); 
     font-weight:normal; 
-    transition: transform .05s ease, box-shadow .2s ease; 
+    transition: transform .05s ease, box-shadow .2s ease, background .2s ease; 
 }
 .btn-primary:hover{ 
     transform: translateY(-1px); 
-    box-shadow:0 8px 18px rgba(123,92,255,.35); 
+    background:#f0edff;
 }
 .btn-primary:active{ 
     transform: translateY(0px); 
@@ -642,7 +643,7 @@ select, .btn{
 }
 .mode-btn:hover{ background:#f0edff; transform: translateY(-1px); }
 .mode-btn:active{ transform: translateY(0px); }
-.mode-btn[data-active="true"]{ background: linear-gradient(90deg, var(--violet-1), var(--violet-2)); color:#fff; border-color:transparent; box-shadow:0 6px 14px rgba(123,92,255,.35) }
+.mode-btn[data-active="true"]{ background: transparent; color:var(--violet-1); border-color:var(--violet-1); border-width:2px; box-shadow:none; }
 /* Drop zone */
 .dropzone{ border:2px dashed #d9d6ff; background: #fbfaff; border-radius:16px; padding:24px; text-align:center; transition: border-color .2s ease, background .2s ease; position: relative; }
 .dropzone.dragover{ border-color: var(--violet-1); background:#f4f1ff }
