@@ -635,9 +635,9 @@ select, .btn{
 <div>
 <label>Mode</label>
 <div class="mode-group" id="modeGroup">
-<button type="button" class="mode-btn" data-mode="full" onclick="console.log('INLINE: full clicked')">Façade entière</button>
-<button type="button" class="mode-btn" data-mode="mid" data-active="true" onclick="console.log('INLINE: mid clicked')">Immeuble partiel</button>
-<button type="button" class="mode-btn" data-mode="detail" onclick="console.log('INLINE: detail clicked')">Détail architectural</button>
+<button type="button" class="mode-btn" data-mode="full">Façade entière</button>
+<button type="button" class="mode-btn" data-mode="mid" data-active="true">Immeuble partiel</button>
+<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
 </div>
 <input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
@@ -646,7 +646,7 @@ select, .btn{
 <div class="dropzone" id="dropzone">
 <div class="dz-title">Glissez-déposez une image</div>
 <div class="dz-sub">ou</div>
-<button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput" onclick="console.log('INLINE: pickBtn clicked'); document.getElementById('fileInput').click();">Téléchargez une image</button>
+<button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
 <input class="hidden-input" type="file" id="fileInput" name="image" accept="image/*" required>
 </div>
 <!-- Hidden by default: no empty preview shown -->
@@ -701,9 +701,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 (function() {
     'use strict';
     console.log('[INIT] Script loading...');
-
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('[INIT] DOM Content Loaded');
+    
+    function initApp() {
+        console.log('[INIT] Initializing app...');
         
         // Get all elements
         const modeGroup = document.getElementById('modeGroup');
@@ -887,7 +887,16 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
         
         console.log('[INIT] JavaScript initialized successfully');
-    });
+    }
+    
+    // Run immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'loading') {
+        console.log('[INIT] Waiting for DOM...');
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        console.log('[INIT] DOM already ready, running now');
+        initApp();
+    }
 })();
 </script>
 </body>
