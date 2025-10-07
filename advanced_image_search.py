@@ -35,9 +35,9 @@ TOPL_L = _get_topL_default()
 
 # ---- Mode presets (fixed Top-L, no adaptive) ----
 MODE_PRESETS = {
-    "full":   {"alpha": 0.75, "L_top": 140, "one_way": False, "windowed": False, "q_grid": 16},
-    "mid":    {"alpha": 0.50, "L_top":  64, "one_way": False, "windowed": False, "q_grid":  8},
-    "detail": {"alpha": 0.20, "L_top":  16, "one_way": True,  "windowed": False, "q_grid":  4},
+    "full":   {"alpha": 0.75, "L_top": 144, "one_way": False, "windowed": False, "q_grid": 16},
+    "mid":    {"alpha": 0.50, "L_top":  49, "one_way": False, "windowed": False, "q_grid":  8},
+    "detail": {"alpha": 0.20, "L_top":  12, "one_way": True,  "windowed": False, "q_grid":  4},
 }
 
 @dataclass
