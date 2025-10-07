@@ -582,7 +582,7 @@ form{ position: relative; z-index: 1; }
 .card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; position: relative; z-index: 1; }
 label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px; position: relative; z-index: 1; }
 .stack{ display:flex; flex-direction:column; gap:12px; position: relative; z-index: 1; }
-.mode-group{ display:flex; gap:8px; position: relative; z-index: 100; }
+.mode-group{ display:flex; gap:10px; position: relative; z-index: 100; justify-content: flex-start; }
 /* Inputs */
 select, .btn{ 
     appearance:none; 
@@ -616,9 +616,9 @@ select, .btn{
     transform: translateY(0px); 
 }
 .mode-btn{ 
-    flex:1; 
+    flex: 0 0 auto;
     text-align:center; 
-    padding:10px 12px; 
+    padding:8px 16px; 
     border-radius:999px; 
     border:1px solid var(--border); 
     background:#faf9ff; 
@@ -634,6 +634,7 @@ select, .btn{
     -moz-user-select: none;
     -ms-user-select: none;
     touch-action: manipulation;
+    white-space: nowrap;
 }
 .mode-btn:hover{ background:#f0edff; transform: translateY(-1px); }
 .mode-btn:active{ transform: translateY(0px); }
@@ -711,9 +712,9 @@ select, .btn{
 <div>
 <label>Mode</label>
 <div class="mode-group" id="modeGroup">
-<button type="button" class="mode-btn" data-mode="full">Façade entière</button>
-<button type="button" class="mode-btn" data-mode="mid" data-active="true">Immeuble partiel</button>
-<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
+<button type="button" class="mode-btn" data-mode="full">Façade</button>
+<button type="button" class="mode-btn" data-mode="mid" data-active="true">Façade Partielle</button>
+<button type="button" class="mode-btn" data-mode="detail">Élément Architectural</button>
 </div>
 <input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
@@ -737,7 +738,7 @@ select, .btn{
 </div>
 </form>
 <div class="info">
-Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : façade entière, immeuble partiel ou détail architectural.
+Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : façade entière, façade partielle ou élément architectural. Priorisez des éléments visibles depuis la rue. Évitez toitures et éléments non visibles depuis la rue par un humain.
 </div>
 {% if error %}
 <div class="info" style="background:#fff8f8;border-color:#ffd5d5;color:#8a1010;">{{ error }}</div>
