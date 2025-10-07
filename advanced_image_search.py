@@ -517,17 +517,18 @@ HTML_TEMPLATE = r'''
 <link href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet"/>
 <style>
 :root{ --violet-1:#7b5cff; /* main */ --violet-2:#a076ff; /* lighter */ --violet-3:#e9e3ff; /* very light */ --text:#1f2430; --muted:#6b7280; --card:#ffffff; --border:#ececec; }
-*{box-sizing:border-box}
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
 body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background: linear-gradient(180deg, #f7f6ff 0%, #ffffff 60%); }
+form{ position: relative; z-index: 1; }
 .hero{ background:#ffffff; color:var(--violet-1); padding: 28px 20px 18px; border-bottom: 1px solid var(--border); }
 .hero-inner{ max-width: 1100px; margin: 0 auto; display:flex; align-items:center; gap:16px; }
 .hero-badge{ width:44px;height:44px;border-radius:12px;background:#f5f1ff;display:flex;align-items:center;justify-content:center; border:1px solid #e6e0ff; font-size:22px; color:var(--violet-1); }
 .hero h1{ margin:0; font-size: 22px; font-weight: 800; line-height:1.25; color:var(--violet-1); }
 .container{ max-width:1100px; margin: 16px auto 40px; padding: 0 20px; }
-.card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; }
-label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px }
-.stack{ display:flex; flex-direction:column; gap:12px }
-.mode-group{ display:flex; gap:8px; position: relative; z-index: 1; }
+.card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; position: relative; z-index: 1; }
+label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px; position: relative; z-index: 1; }
+.stack{ display:flex; flex-direction:column; gap:12px; position: relative; z-index: 1; }
+.mode-group{ display:flex; gap:8px; position: relative; z-index: 100; }
 /* Inputs */
 select, .btn{ 
     appearance:none; 
@@ -536,14 +537,15 @@ select, .btn{
     padding:12px 14px; 
     font-size:14px; 
     background:#fff; 
-    cursor:pointer; 
+    cursor:pointer !important; 
     pointer-events: auto !important; 
     position: relative; 
-    z-index: 10 !important;
+    z-index: 1000 !important;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    touch-action: manipulation;
 }
 .btn-primary{ 
     background:var(--violet-1); 
@@ -566,17 +568,18 @@ select, .btn{
     border-radius:999px; 
     border:1px solid var(--border); 
     background:#faf9ff; 
-    cursor:pointer; 
+    cursor:pointer !important; 
     font-weight:600; 
     font-size:13px; 
     transition: all 0.2s ease; 
     pointer-events: auto !important; 
     position: relative; 
-    z-index: 10 !important;
+    z-index: 1000 !important;
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    touch-action: manipulation;
 }
 .mode-btn:hover{ background:#f0edff; transform: translateY(-1px); }
 .mode-btn:active{ transform: translateY(0px); }
@@ -632,9 +635,9 @@ select, .btn{
 <div>
 <label>Mode</label>
 <div class="mode-group" id="modeGroup">
-<button type="button" class="mode-btn" data-mode="full">Façade entière</button>
-<button type="button" class="mode-btn" data-mode="mid" data-active="true">Immeuble partiel</button>
-<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
+<button type="button" class="mode-btn" data-mode="full" onclick="console.log('INLINE: full clicked')">Façade entière</button>
+<button type="button" class="mode-btn" data-mode="mid" data-active="true" onclick="console.log('INLINE: mid clicked')">Immeuble partiel</button>
+<button type="button" class="mode-btn" data-mode="detail" onclick="console.log('INLINE: detail clicked')">Détail architectural</button>
 </div>
 <input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
@@ -643,7 +646,7 @@ select, .btn{
 <div class="dropzone" id="dropzone">
 <div class="dz-title">Glissez-déposez une image</div>
 <div class="dz-sub">ou</div>
-<button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
+<button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput" onclick="console.log('INLINE: pickBtn clicked'); document.getElementById('fileInput').click();">Téléchargez une image</button>
 <input class="hidden-input" type="file" id="fileInput" name="image" accept="image/*" required>
 </div>
 <!-- Hidden by default: no empty preview shown -->
