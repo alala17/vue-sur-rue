@@ -644,8 +644,18 @@ select, .btn{
 .dropzone.dragover{ border-color: var(--violet-1); background:#f4f1ff }
 .dz-title{ font-weight:700; margin-bottom:6px }
 .dz-sub{ color:var(--muted); font-size:13px; margin-bottom:12px }
+.dropzone-info{ 
+    margin-top: 16px; 
+    padding: 12px; 
+    background: #f7f4ff; 
+    border-radius: 8px; 
+    font-size: 12px; 
+    color: #4a3f7a; 
+    text-align: left; 
+    line-height: 1.5;
+}
 .hidden-input{ display:none }
-.actions{ display:flex; justify-content:flex-end; margin-top: 18px }
+.actions{ display:flex; justify-content:center; margin-top: 18px }
 /* Cropper purple theming */
 .cropper-view-box { outline: 1px solid var(--violet-1); }
 .cropper-line, .cropper-point { background-color: var(--violet-1); }
@@ -700,17 +710,17 @@ select, .btn{
 <div class="container">
 <div class="card">
 <form id="searchForm" method="post" enctype="multipart/form-data" class="stack" novalidate>
-<!-- Arrondissement (first) -->
+<!-- Step 1: Arrondissement -->
 <div>
-<label>Arrondissement</label>
+<label>Étape 1 - Sélectionnez l'arrondissement</label>
 <select name="namespace" required>
 <option value="">Choisir…</option>
 ''' + ''.join([f'<option value="{ns}">{ns}</option>' for ns in AVAILABLE_NAMESPACES]) + '''
 </select>
 </div>
-<!-- Mode now BELOW arrondissement -->
+<!-- Step 2: Mode -->
 <div>
-<label>Mode</label>
+<label>Étape 2 - Sélectionnez le mode</label>
 <div class="mode-group" id="modeGroup">
 <button type="button" class="mode-btn" data-mode="full">Façade</button>
 <button type="button" class="mode-btn" data-mode="mid" data-active="true">Façade Partielle</button>
@@ -718,13 +728,17 @@ select, .btn{
 </div>
 <input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
+<!-- Step 3: Image -->
 <div>
-<label>Image</label>
+<label>Étape 3 - Téléchargez une image et sélectionnez le cadrage d'analyse</label>
 <div class="dropzone" id="dropzone">
 <div class="dz-title">Glissez-déposez une image</div>
 <div class="dz-sub">ou</div>
 <button type="button" class="btn btn-primary" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
 <input class="hidden-input" type="file" id="fileInput" name="image" accept="image/*" required>
+<div class="dropzone-info">
+Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : façade entière, façade partielle ou élément architectural. Priorisez des éléments visibles depuis la rue. Évitez toitures et éléments non visibles depuis la rue par un humain.
+</div>
 </div>
 <!-- Hidden by default: no empty preview shown -->
 <div class="cropper-area" id="cropperArea" aria-live="polite" style="display:none">
@@ -734,12 +748,9 @@ select, .btn{
 <!-- Hidden input for cropped JPEG -->
 <input type="hidden" name="image_base64" id="imageBase64">
 <div class="actions">
-<button type="submit" class="btn btn-primary" id="searchBtn">🔍 Rechercher</button>
+<button type="submit" class="btn btn-primary" id="searchBtn">Rechercher</button>
 </div>
 </form>
-<div class="info">
-Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : façade entière, façade partielle ou élément architectural. Priorisez des éléments visibles depuis la rue. Évitez toitures et éléments non visibles depuis la rue par un humain.
-</div>
 {% if error %}
 <div class="info" style="background:#fff8f8;border-color:#ffd5d5;color:#8a1010;">{{ error }}</div>
 {% endif %}
