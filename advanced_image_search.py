@@ -652,6 +652,27 @@ select, .btn{
 /* Results */
 .results{ margin-top:20px }
 .results-title{ font-weight: 700; color:#2a235f; margin: 4px 0 12px; }
+.query-image-container{ 
+    margin: 16px 0 20px; 
+    padding: 16px; 
+    background: #f7f4ff; 
+    border-radius: 14px; 
+    border: 1px solid #e7e0ff;
+}
+.query-image-title{ 
+    font-weight: 600; 
+    color: #2a235f; 
+    margin-bottom: 12px; 
+    font-size: 14px;
+}
+.query-image{ 
+    max-width: 300px; 
+    max-height: 300px; 
+    border-radius: 10px; 
+    border: 2px solid var(--violet-1); 
+    box-shadow: 0 4px 12px rgba(123, 92, 255, 0.2);
+    display: block;
+}
 .results-grid{ display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; align-items:stretch; }
 @media (max-width: 1100px){ .results-grid{ grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); } }
 .result-card{ border:1px solid var(--border); padding:0; border-radius:14px; background:#fff; overflow:hidden; display:flex; flex-direction:column; min-height:120px; }
@@ -724,6 +745,12 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 {% if results %}
 <div class="results">
 <div class="results-title">Résultats par ordre de priorité.</div>
+{% if query_image %}
+<div class="query-image-container">
+<div class="query-image-title">Votre image de recherche :</div>
+<img src="{{ query_image }}" alt="Image de recherche" class="query-image">
+</div>
+{% endif %}
 <div class="results-grid">
 {% for r in results[:5] %}
 <div class="result-card">
@@ -1020,6 +1047,7 @@ def _decode_data_url(data_url: str) -> Optional[bytes]:
 def index():
     error = None
     results = None
+    query_image = None
 
     if request.method == 'POST':
         pc_client, pinecone_index = get_pinecone_client()
@@ -1040,6 +1068,8 @@ def index():
                         raw = _decode_data_url(data_url)
                         if raw:
                             img_obj = Image.open(io.BytesIO(raw))
+                            # Store the cropped image as base64 for display
+                            query_image = data_url
                         else:
                             error = "Image recadrée invalide."
 
@@ -1047,7 +1077,13 @@ def index():
                     if img_obj is None and 'image' in request.files:
                         file = request.files['image']
                         if file and file.filename:
-                            img_obj = Image.open(io.BytesIO(file.read()))
+                            file_bytes = file.read()
+                            img_obj = Image.open(io.BytesIO(file_bytes))
+                            # Convert to base64 for display
+                            buffered = io.BytesIO()
+                            img_obj.save(buffered, format="JPEG")
+                            img_base64 = base64.b64encode(buffered.getvalue()).decode()
+                            query_image = f"data:image/jpeg;base64,{img_base64}"
 
                     if img_obj is None:
                         error = "Aucune image fournie."
@@ -1065,6 +1101,7 @@ def index():
         HTML_TEMPLATE,
         error=error,
         results=results,
+        query_image=query_image,
         AVAILABLE_NAMESPACES=AVAILABLE_NAMESPACES
     )
 
