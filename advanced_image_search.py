@@ -583,8 +583,9 @@ form{ position: relative; z-index: 1; }
 .hero-subtitle{ margin:0; font-size: 24px; font-weight: 500; line-height:1.2; color: #6b46ff; opacity: 0.85; }
 .container{ max-width:1100px; margin: 16px auto 40px; padding: 0 20px; }
 .card{ background:var(--card); border-radius:20px; box-shadow: 0 18px 60px rgba(96, 72, 255, .12); border:1px solid var(--border); padding: 22px; position: relative; z-index: 1; }
-label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:8px; position: relative; z-index: 1; }
-.stack{ display:flex; flex-direction:column; gap:24px; position: relative; z-index: 1; }
+label{ font-weight:600; font-size:14px; color:#111; display:block; margin-bottom:12px; position: relative; z-index: 1; }
+.stack{ display:flex; flex-direction:column; gap:32px; position: relative; z-index: 1; }
+.stack > div{ margin-bottom: 8px; }
 .mode-group{ display:flex; gap:10px; position: relative; z-index: 100; justify-content: flex-start; }
 /* Inputs */
 select, .btn{ 
@@ -645,8 +646,8 @@ select, .btn{
 /* Drop zone */
 .dropzone{ border:2px dashed #d9d6ff; background: #fbfaff; border-radius:16px; padding:24px; text-align:center; transition: border-color .2s ease, background .2s ease; position: relative; }
 .dropzone.dragover{ border-color: var(--violet-1); background:#f4f1ff }
-.dz-title{ font-weight:700; margin-bottom:6px }
-.dz-sub{ color:var(--muted); font-size:13px; margin-bottom:12px }
+.dz-title{ color:var(--muted); font-size:13px; font-weight:normal; margin-bottom:6px }
+.dz-sub{ color:var(--muted); font-size:13px; font-weight:normal; margin-bottom:12px }
 .dropzone-info{ 
     margin-top: 16px; 
     padding: 12px; 
