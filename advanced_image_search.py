@@ -588,6 +588,9 @@ select, .btn{
 .dz-sub{ color:var(--muted); font-size:13px; margin-bottom:12px }
 .hidden-input{ display:none }
 .actions{ display:flex; justify-content:flex-end; margin-top: 18px }
+/* Cropper area */
+.cropper-area { margin-top: 16px; }
+.cropper-area img { max-width: 100%; display: block; }
 /* Cropper purple theming */
 .cropper-view-box { outline: 1px solid var(--violet-1); }
 .cropper-line, .cropper-point { background-color: var(--violet-1); }
@@ -764,11 +767,19 @@ window.addEventListener('load', function() {
         // Setup file input change
         if (fileInput) {
             fileInput.addEventListener('change', function(e) {
-                console.log('File selected:', this.files[0]);
-                if (this.files[0]) {
+                console.log('=== FILE INPUT CHANGE ===');
+                console.log('Files count:', this.files.length);
+                
+                if (this.files && this.files.length > 0) {
+                    console.log('File selected:', this.files[0].name);
                     handleFileUpload(this.files[0]);
+                } else {
+                    console.log('No file selected or selection cancelled');
                 }
             });
+            console.log('File input change listener added');
+        } else {
+            console.error('File input not found');
         }
         
         // Setup drag and drop
@@ -830,38 +841,102 @@ window.addEventListener('load', function() {
     
     // Simple file handling
     function handleFileUpload(file) {
-        console.log('Handling file:', file.name, file.size);
+        console.log('=== HANDLING FILE ===');
+        console.log('File name:', file.name);
+        console.log('File size:', file.size, 'bytes');
+        console.log('File type:', file.type);
         
-        if (file.size > 64 * 1024 * 1024) {
-            alert('Fichier trop volumineux.');
+        if (!file) {
+            console.error('No file provided');
             return;
         }
         
+        if (file.size > 64 * 1024 * 1024) {
+            alert('Fichier trop volumineux (max 64 Mo).');
+            console.error('File too large:', file.size);
+            return;
+        }
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Veuillez sélectionner une image valide.');
+            console.error('Invalid file type:', file.type);
+            return;
+        }
+        
+        const preview = document.getElementById('preview');
+        const cropperArea = document.getElementById('cropperArea');
+        
+        if (!preview || !cropperArea) {
+            console.error('Preview elements not found');
+            return;
+        }
+        
+        // Destroy existing cropper if any
+        if (window.cropper) {
+            console.log('Destroying existing cropper');
+            window.cropper.destroy();
+            window.cropper = null;
+        }
+        
+        console.log('Reading file...');
         const reader = new FileReader();
+        
+        reader.onerror = function(error) {
+            console.error('FileReader error:', error);
+            alert('Erreur lors de la lecture du fichier.');
+        };
+        
         reader.onload = function(e) {
-            const preview = document.getElementById('preview');
-            const cropperArea = document.getElementById('cropperArea');
+            console.log('File loaded successfully');
             
-            if (preview && cropperArea) {
+            try {
+                // Set the image source
                 preview.src = e.target.result;
-                cropperArea.style.display = 'block';
                 
-                // Initialize cropper
-                if (window.cropper) {
-                    window.cropper.destroy();
-                }
-                window.cropper = new Cropper(preview, {
-                    viewMode: 1,
-                    aspectRatio: 1,
-                    dragMode: 'move',
-                    autoCropArea: 1.0,
-                    responsive: true,
-                    background: false,
-                });
-                console.log('Cropper initialized');
+                // Wait for image to actually load before initializing cropper
+                preview.onload = function() {
+                    console.log('Image loaded in preview');
+                    console.log('Image dimensions:', preview.naturalWidth, 'x', preview.naturalHeight);
+                    
+                    // Show the cropper area
+                    cropperArea.style.display = 'block';
+                    
+                    // Small delay to ensure DOM is ready
+                    setTimeout(function() {
+                        try {
+                            console.log('Initializing cropper...');
+                            window.cropper = new Cropper(preview, {
+                                viewMode: 1,
+                                aspectRatio: 1,
+                                dragMode: 'move',
+                                autoCropArea: 1.0,
+                                responsive: true,
+                                background: false,
+                                ready: function() {
+                                    console.log('✓ Cropper ready!');
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Error initializing cropper:', error);
+                            alert('Erreur lors de l\'initialisation du recadrage. Veuillez réessayer.');
+                        }
+                    }, 100);
+                };
+                
+                preview.onerror = function() {
+                    console.error('Error loading image into preview');
+                    alert('Erreur lors du chargement de l\'image. Veuillez réessayer.');
+                };
+                
+            } catch (error) {
+                console.error('Error in onload handler:', error);
+                alert('Erreur lors du traitement de l\'image.');
             }
         };
+        
         reader.readAsDataURL(file);
+        console.log('FileReader started');
     }
     
     // Start the app
