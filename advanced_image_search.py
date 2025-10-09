@@ -501,7 +501,7 @@ def database_matching_search_pipeline(
     ranked.sort(key=lambda x: x[1], reverse=True)
 
     results: List[SearchResult] = []
-    for uid, final_score, coarse_score, channel, gem_score, cls_score, md in ranked[:5]:
+    for uid, final_score, coarse_score, channel, gem_score, cls_score, md in ranked[:3]:
         location_folder = md.get("location_folder", "")
         address = location_folder.replace("_lat_", " ").replace("_long_", " ").replace("_", " ")
 
@@ -689,7 +689,7 @@ select, .btn{
     box-shadow: 0 4px 12px rgba(123, 92, 255, 0.2);
     display: block;
 }
-.results-grid{ display:grid; grid-template-columns: repeat(5, 1fr); gap:12px; align-items:stretch; }
+.results-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-items:stretch; }
 @media (max-width: 1100px){ .results-grid{ grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); } }
 .result-card{ border:1px solid var(--border); padding:0; border-radius:14px; background:#fff; overflow:hidden; display:flex; flex-direction:column; min-height:120px; }
 .sv-wrap{ position:relative }
@@ -773,7 +773,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 </div>
 {% endif %}
 <div class="results-grid">
-{% for r in results[:5] %}
+{% for r in results[:3] %}
 <div class="result-card">
 {% set rank = loop.index %}
 <!-- Rank above the map, purple -->
@@ -1109,7 +1109,7 @@ def index():
                         error = "Aucune image fournie."
                     else:
                         results = database_matching_search_pipeline(img_obj, ns, mode=mode)
-                        results = results[:5] if results else []
+                        results = results[:3] if results else []
                         if not results:
                             error = f"Aucun résultat trouvé dans {ns}."
 
