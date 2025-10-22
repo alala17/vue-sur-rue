@@ -14,7 +14,8 @@ RUN python -m pip install --upgrade pip wheel setuptools \
  && pip install -r requirements.txt
 
 # Copie du code
-COPY advanced_image_search.py .
+COPY backend.py .
+COPY frontend.html .
 
 # Optionnel : répertoire cache torch/hub (évite d'encombrer /root)
 ENV TORCH_HOME=/app/.cache/torch
@@ -24,4 +25,4 @@ EXPOSE 8080
 
 # Commande de démarrage (Gunicorn, threads pour I/O, port Railway)
 # NB: forme "sh -c" pour l'expansion des variables d'env.
-CMD ["sh", "-c", "gunicorn -w ${WEB_CONCURRENCY:-2} -k gthread --threads ${GUNICORN_THREADS:-8} -t 180 -b 0.0.0.0:${PORT:-8080} advanced_image_search:app"]
+CMD ["sh", "-c", "gunicorn -w ${WEB_CONCURRENCY:-2} -k gthread --threads ${GUNICORN_THREADS:-8} -t 180 -b 0.0.0.0:${PORT:-8080} backend:app"]

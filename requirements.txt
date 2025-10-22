@@ -1,5 +1,9 @@
 pinecone>=5,<6
 flask
+flask-cors
 pillow
 numpy
 gunicorn
+python-dotenv
+torch
+torchvision
