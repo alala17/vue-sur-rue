@@ -431,10 +431,10 @@ select, .btn{
     <div>
         <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
         <br>
-        <button onclick="checkSubscriptionStatus()" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
-        <button onclick="syncStripeSubscription()" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Sync Stripe</button>
+        <button id="checkSubscriptionBtn" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
+        <button id="syncStripeBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Sync Stripe</button>
     </div>
-    <button onclick="signOut()" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
+    <button id="signOutBtn" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
 
 <div id="connectionStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #f0f0f0; text-align: center;">
@@ -1319,6 +1319,30 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 e.preventDefault();
                 resetPassword();
             });
+        }
+        
+        // Add event listeners for subscription buttons
+        const checkSubscriptionBtn = document.getElementById('checkSubscriptionBtn');
+        const syncStripeBtn = document.getElementById('syncStripeBtn');
+        
+        console.log('[INIT] Setting up subscription buttons...');
+        console.log('[INIT] checkSubscriptionBtn found:', !!checkSubscriptionBtn);
+        console.log('[INIT] syncStripeBtn found:', !!syncStripeBtn);
+        
+        if (checkSubscriptionBtn) {
+            checkSubscriptionBtn.addEventListener('click', checkSubscriptionStatus);
+        }
+        
+        if (syncStripeBtn) {
+            syncStripeBtn.addEventListener('click', syncStripeSubscription);
+        }
+        
+        // Add event listener for sign out button
+        const signOutBtn = document.getElementById('signOutBtn');
+        console.log('[INIT] signOutBtn found:', !!signOutBtn);
+        
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', signOut);
         }
         
         // Load namespaces immediately (no auth required)
