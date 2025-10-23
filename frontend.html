@@ -21,6 +21,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     justify-content: center;
     align-items: center;
     z-index: 10000;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .modal-content {
@@ -334,7 +336,11 @@ select, .btn{
 <div class="container" id="mainApp" style="display: none;">
 <div class="card">
 <div class="user-info" id="userInfo" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
-    <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
+    <div>
+        <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
+        <br>
+        <button onclick="checkSubscriptionStatus()" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
+    </div>
     <button onclick="signOut()" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
 
@@ -580,22 +586,30 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     }
     
     async function signIn() {
+        console.log('[SIGNIN] Sign in function called');
         const email = document.getElementById('signinEmail').value.trim();
+        console.log('[SIGNIN] Email:', email);
+        
         if (!email) {
             showAuthMessage('Veuillez entrer votre adresse email.', 'error');
             return;
         }
         
+        console.log('[SIGNIN] Sending sign-in link for:', email);
         await sendSignInLink(email);
     }
     
     async function signUp() {
+        console.log('[SIGNUP] Sign up function called');
         const email = document.getElementById('signupEmail').value.trim();
+        console.log('[SIGNUP] Email:', email);
+        
         if (!email) {
             showAuthMessage('Veuillez entrer votre adresse email.', 'error');
             return;
         }
         
+        console.log('[SIGNUP] Sending sign-in link for:', email);
         await sendSignInLink(email);
     }
     
@@ -751,7 +765,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                         font-size: 16px; 
                         font-weight: 500;
                     ">
-                        Manual Activate (Test)
+                        Activer manuellement (Test)
                     </button>
                 </div>
             `;
@@ -796,6 +810,43 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         } catch (error) {
             console.error('[MANUAL] Error:', error);
             alert('Manual activation error: ' + error.message);
+        }
+    }
+    
+    async function checkSubscriptionStatus() {
+        console.log('[SUBSCRIPTION] Checking subscription status...');
+        try {
+            const response = await fetch('/api/usage/check', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            console.log('[SUBSCRIPTION] Current status:', data);
+            
+            let message = `Status actuel:\n`;
+            message += `- Recherches gratuites utilisées: ${data.free_usage_count}/1\n`;
+            message += `- Recherches payantes utilisées: ${data.paid_usage_count}/2\n`;
+            message += `- Statut d'abonnement: ${data.subscription_status}\n`;
+            message += `- Peut rechercher: ${data.can_search ? 'Oui' : 'Non'}\n`;
+            
+            if (!data.can_search && data.reason === 'free_limit_reached') {
+                message += `\nVous avez utilisé votre recherche gratuite. Abonnez-vous pour continuer.`;
+            } else if (!data.can_search && data.reason === 'monthly_limit_reached') {
+                message += `\nVous avez atteint votre limite mensuelle. Réessayez le mois prochain.`;
+            }
+            
+            alert(message);
+            
+            // Refresh usage display
+            await checkUsageStatus();
+            
+        } catch (error) {
+            console.error('[SUBSCRIPTION] Error:', error);
+            alert('Erreur lors de la vérification: ' + error.message);
         }
     }
     
@@ -956,15 +1007,28 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         handleEmailLinkSignIn();
         
         // Add event listeners for new auth forms
-        document.getElementById('signInForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            signIn();
-        });
+        const signInForm = document.getElementById('signInForm');
+        const signUpForm = document.getElementById('signUpForm');
         
-        document.getElementById('signUpForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            signUp();
-        });
+        console.log('[INIT] Setting up event listeners...');
+        console.log('[INIT] signInForm found:', !!signInForm);
+        console.log('[INIT] signUpForm found:', !!signUpForm);
+        
+        if (signInForm) {
+            signInForm.addEventListener('submit', function(e) {
+                console.log('[INIT] Sign-in form submitted');
+                e.preventDefault();
+                signIn();
+            });
+        }
+        
+        if (signUpForm) {
+            signUpForm.addEventListener('submit', function(e) {
+                console.log('[INIT] Sign-up form submitted');
+                e.preventDefault();
+                signUp();
+            });
+        }
         
         // Load namespaces immediately (no auth required)
         loadNamespaces();
