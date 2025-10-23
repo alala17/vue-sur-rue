@@ -8,6 +8,150 @@
 :root{ --violet-1:#7b5cff; /* main */ --violet-2:#a076ff; /* lighter */ --violet-3:#e9e3ff; /* very light */ --text:#1f2430; --muted:#6b7280; --card:#ffffff; --border:#ececec; }
 *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
 body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; color:var(--text); background: linear-gradient(180deg, #f7f6ff 0%, #ffffff 60%); }
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.modal-header h2 {
+    margin: 0 0 10px 0;
+    color: var(--violet-1);
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.modal-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 16px;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-button {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    color: var(--violet-1);
+    border-bottom-color: var(--violet-1);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content h3 {
+    margin: 0 0 10px 0;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.tab-content p {
+    margin: 0 0 20px 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.tab-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.tab-content input {
+    padding: 15px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.tab-content input:focus {
+    outline: none;
+    border-color: var(--violet-1);
+}
+
+.tab-content button {
+    padding: 15px;
+    background: var(--violet-1);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.tab-content button:hover {
+    background: var(--violet-2);
+}
+
+.auth-message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.auth-message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.auth-message.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
 form{ position: relative; z-index: 1; }
 .hero{ background:#ffffff; color:var(--violet-1); padding: 28px 20px 18px; border-bottom: 1px solid var(--border); }
 .hero-inner{ max-width: 1100px; margin: 0 auto; display:flex; align-items:center; gap:16px; }
@@ -152,27 +296,50 @@ select, .btn{
 </div>
 </div>
 </div>
-<div class="container">
-<div class="card">
-<div id="connectionStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #f0f0f0; text-align: center;">
-    <strong>Connection Status:</strong> <span id="statusText">⏳ Waiting for authentication...</span>
-</div>
-<div id="authStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #fff3cd; text-align: center; display: none;">
-    <strong>Authentication:</strong> <span id="authText">Please sign in to continue</span>
-    <button id="signInBtn" class="btn btn-primary" style="margin-left: 10px;">Sign In</button>
+<!-- Authentication Modal -->
+<div id="authModal" class="modal" style="display: block;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Bienvenue sur Vue Sur Rue</h2>
+            <p>Connectez-vous pour rechercher des images similaires dans Paris</p>
+        </div>
+        
+        <div class="auth-tabs">
+            <button class="tab-button active" onclick="switchTab('signin')">Se connecter</button>
+            <button class="tab-button" onclick="switchTab('signup')">S'inscrire</button>
+        </div>
+        
+        <div id="signinTab" class="tab-content active">
+            <h3>Connexion</h3>
+            <p>Vous avez déjà un compte ? Entrez votre email pour recevoir un lien de connexion.</p>
+            <form id="signInForm">
+                <input type="email" id="signinEmail" placeholder="Votre adresse email" required>
+                <button type="submit">Envoyer le lien de connexion</button>
+            </form>
+        </div>
+        
+        <div id="signupTab" class="tab-content">
+            <h3>Inscription</h3>
+            <p>Nouveau sur Vue Sur Rue ? Entrez votre email pour créer un compte.</p>
+            <form id="signUpForm">
+                <input type="email" id="signupEmail" placeholder="Votre adresse email" required>
+                <button type="submit">Créer un compte</button>
+            </form>
+        </div>
+        
+        <div id="authMessage" class="auth-message"></div>
+    </div>
 </div>
 
-<!-- Sign-in form (hidden by default) -->
-<div id="signInForm" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef;">
-    <h3 style="margin-top: 0; color: #333; text-align: center;">Sign In to Access the App</h3>
-    <div style="margin-bottom: 15px;">
-        <label for="signInEmail" style="display: block; margin-bottom: 5px; font-weight: 500; color: #333;">Email Address:</label>
-        <input type="email" id="signInEmail" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="Enter your email address">
-    </div>
-    <div style="display: flex; gap: 10px;">
-        <button id="sendSignInBtn" style="flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">Send Sign-In Link</button>
-        <button id="cancelSignInBtn" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">Cancel</button>
-    </div>
+<div class="container" id="mainApp" style="display: none;">
+<div class="card">
+<div class="user-info" id="userInfo" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
+    <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
+    <button onclick="signOut()" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
+</div>
+
+<div id="connectionStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #f0f0f0; text-align: center;">
+    <strong>Status:</strong> <span id="statusText">✅ Connecté et prêt à rechercher</span>
 </div>
 <form id="searchForm" class="stack" novalidate>
 <!-- Step 1: Arrondissement -->
@@ -329,6 +496,17 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     }
     
     // Authentication functions
+    // Tab switching function
+    function switchTab(tabName) {
+        // Remove active class from all tabs and buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to selected tab and button
+        document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+    }
+
     async function checkAuthStatus() {
         if (!window.firebaseAuth) {
             console.log('[AUTH] Firebase not loaded yet');
@@ -356,89 +534,75 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     const data = await response.json();
                     
                     if (data.authenticated) {
-                        console.log('[AUTH] User is authenticated, showing authenticated state');
-                        showAuthenticatedState(data.user);
-                        // Namespaces already loaded, no need to reload
+                        console.log('[AUTH] User is authenticated, showing main app');
+                        showMainApp(data.user);
                     } else {
                         console.log('[AUTH] User not authenticated by backend');
-                        showUnauthenticatedState();
+                        showAuthModal();
                     }
                 } catch (error) {
                     console.error('[AUTH] Verification failed:', error);
-                    showUnauthenticatedState();
+                    showAuthModal();
                 }
             } else {
-                showUnauthenticatedState();
+                showAuthModal();
             }
         });
     }
     
-    function showAuthenticatedState(user) {
-        authStatus.style.display = 'block';
-        authStatus.style.background = '#d1fae5';
-        authText.textContent = `✅ Welcome, ${user.email}! Ready to search`;
-        signInBtn.textContent = 'Sign Out';
-        signInBtn.onclick = signOut;
+    function showMainApp(user) {
+        // Hide auth modal
+        document.getElementById('authModal').style.display = 'none';
         
-        // Enable the form
-        form.style.opacity = '1';
-        form.style.pointerEvents = 'auto';
+        // Show main app
+        document.getElementById('mainApp').style.display = 'block';
         
-        // Hide sign-in form if it's visible
-        document.getElementById('signInForm').style.display = 'none';
+        // Update user info
+        document.getElementById('userEmail').textContent = user.email;
+        
+        // Load namespaces
+        loadNamespaces();
         
         // Check usage status
         checkUsageStatus();
     }
     
-    function showPendingState(user) {
-        authStatus.style.display = 'block';
-        authStatus.style.background = '#fef3c7';
-        authText.textContent = `⏳ Account pending approval. Status: ${user.status}`;
-        signInBtn.textContent = 'Check Status Again';
-        signInBtn.onclick = () => {
-            console.log('[AUTH] Manual status check...');
-            checkAuthStatus();
-        };
+    function showAuthModal() {
+        // Show auth modal
+        document.getElementById('authModal').style.display = 'block';
         
-        // Update connection status
-        if (statusText) statusText.textContent = '⏳ Account pending approval';
+        // Hide main app
+        document.getElementById('mainApp').style.display = 'none';
         
-        // Disable the form
-        form.style.opacity = '0.5';
-        form.style.pointerEvents = 'none';
-    }
-    
-    function showUnauthenticatedState() {
-        authStatus.style.display = 'none';  // Hide auth status initially
-        authText.textContent = 'Please sign in to continue';
-        signInBtn.textContent = 'Sign In';
-        signInBtn.onclick = signIn;
-        
-        // Update connection status
-        if (statusText) statusText.textContent = '✅ Ready to search - Sign in when you click "Rechercher"';
-        
-        // Enable the form - users can upload images without signing in
-        form.style.opacity = '1';
-        form.style.pointerEvents = 'auto';
-    }
-    
-    function showApprovedButNotSignedInState() {
-        authStatus.style.display = 'block';
-        authStatus.style.background = '#d1fae5';
-        authText.textContent = 'Your account is approved! Please sign in to access the app.';
-        signInBtn.textContent = 'Sign In';
-        signInBtn.onclick = signIn;
-        
-        // Disable the form
-        form.style.opacity = '0.5';
-        form.style.pointerEvents = 'none';
+        // Clear any auth messages
+        document.getElementById('authMessage').innerHTML = '';
+        document.getElementById('authMessage').className = 'auth-message';
     }
     
     async function signIn() {
-        // Show the sign-in form
-        document.getElementById('signInForm').style.display = 'block';
-        document.getElementById('signInEmail').focus();
+        const email = document.getElementById('signinEmail').value.trim();
+        if (!email) {
+            showAuthMessage('Veuillez entrer votre adresse email.', 'error');
+            return;
+        }
+        
+        await sendSignInLink(email);
+    }
+    
+    async function signUp() {
+        const email = document.getElementById('signupEmail').value.trim();
+        if (!email) {
+            showAuthMessage('Veuillez entrer votre adresse email.', 'error');
+            return;
+        }
+        
+        await sendSignInLink(email);
+    }
+    
+    function showAuthMessage(message, type) {
+        const messageDiv = document.getElementById('authMessage');
+        messageDiv.innerHTML = message;
+        messageDiv.className = `auth-message ${type}`;
     }
     
     async function processSignIn() {
@@ -644,9 +808,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             
             await window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings);
             window.localStorage.setItem('emailForSignIn', email);
-            alert('Sign-in link sent to your email! Check your inbox and click the link.');
+            showAuthMessage('Lien de connexion envoyé ! Vérifiez votre boîte email et cliquez sur le lien.', 'success');
         } catch (error) {
-            alert('Failed to send sign-in link: ' + error.message);
+            showAuthMessage('Erreur lors de l\'envoi du lien: ' + error.message, 'error');
         }
     }
     
@@ -791,15 +955,15 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         // Handle email link sign-in first
         handleEmailLinkSignIn();
         
-        // Add event listeners for sign-in form
-        document.getElementById('sendSignInBtn').addEventListener('click', processSignIn);
-        document.getElementById('cancelSignInBtn').addEventListener('click', cancelSignIn);
+        // Add event listeners for new auth forms
+        document.getElementById('signInForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            signIn();
+        });
         
-        // Allow Enter key to submit sign-in form
-        document.getElementById('signInEmail').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                processSignIn();
-            }
+        document.getElementById('signUpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            signUp();
         });
         
         // Load namespaces immediately (no auth required)
@@ -987,13 +1151,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     return;
                 }
                 
-                // Check if user is authenticated before searching
-                if (!authToken) {
-                    // Show sign-in form
-                    document.getElementById('signInForm').style.display = 'block';
-                    showError('Please sign in to perform a search.');
-                    return;
-                }
+                // User is already authenticated (modal-based auth)
                 
                 // Show loading state
                 searchBtn.disabled = true;
