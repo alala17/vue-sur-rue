@@ -528,8 +528,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     
-    // Make auth available globally
+    // Make auth and functions available globally
     window.firebaseAuth = auth;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signInWithPopup = signInWithPopup;
+    window.GoogleAuthProvider = GoogleAuthProvider;
+    window.sendEmailVerification = sendEmailVerification;
+    window.sendPasswordResetEmail = sendPasswordResetEmail;
     window.sendSignInLinkToEmail = sendSignInLinkToEmail;
     window.isSignInWithEmailLink = isSignInWithEmailLink;
     window.signInWithEmailLink = signInWithEmailLink;
@@ -709,7 +715,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         try {
             showAuthMessage('Connexion en cours...', 'success');
-            const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+            const userCredential = await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
             console.log('[SIGNIN] User signed in:', userCredential.user);
             showAuthMessage('Connexion réussie !', 'success');
         } catch (error) {
@@ -761,11 +767,11 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         try {
             showAuthMessage('Création du compte en cours...', 'success');
-            const userCredential = await createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+            const userCredential = await window.createUserWithEmailAndPassword(window.firebaseAuth, email, password);
             console.log('[SIGNUP] User created:', userCredential.user);
             
             // Send email verification
-            await sendEmailVerification(userCredential.user);
+            await window.sendEmailVerification(userCredential.user);
             showAuthMessage('Compte créé ! Vérifiez votre email pour activer votre compte.', 'success');
             
         } catch (error) {
@@ -790,8 +796,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     
     async function signInWithGoogle() {
         try {
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(window.firebaseAuth, provider);
+            const provider = new window.GoogleAuthProvider();
+            const result = await window.signInWithPopup(window.firebaseAuth, provider);
             console.log('[GOOGLE] User signed in:', result.user);
             showAuthMessage('Connexion Google réussie !', 'success');
         } catch (error) {
@@ -809,7 +815,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
         
         try {
-            await sendPasswordResetEmail(window.firebaseAuth, email);
+            await window.sendPasswordResetEmail(window.firebaseAuth, email);
             showAuthMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte email.', 'success');
         } catch (error) {
             console.error('[RESET] Error:', error);
