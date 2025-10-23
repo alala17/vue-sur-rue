@@ -296,21 +296,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function loadNamespaces() {
         try {
             console.log('[API] Attempting to fetch namespaces...');
-            if (statusText) statusText.textContent = 'Connecting to backend...';
+            if (statusText) statusText.textContent = 'Loading arrondissements...';
             
-            // Check if we have an auth token
-            if (!authToken) {
-                console.log('[API] No auth token available, skipping namespace load');
-                if (statusText) statusText.textContent = `⏳ Waiting for authentication...`;
-                return;
-            }
-            
-            const response = await fetch('/api/namespaces', {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await fetch('/api/namespaces');
             console.log('[API] Response status:', response.status);
             console.log('[API] Response headers:', response.headers);
             
@@ -332,7 +320,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             });
             
             console.log('[API] Loaded namespaces:', availableNamespaces.length);
-            if (statusText) statusText.textContent = `✅ Connected! Loaded ${availableNamespaces.length} arrondissements`;
+            if (statusText) statusText.textContent = `✅ Ready to search - Loaded ${availableNamespaces.length} arrondissements`;
         } catch (error) {
             console.error('[API] Failed to load namespaces:', error);
             if (statusText) statusText.textContent = `❌ Connection failed: ${error.message}`;
@@ -370,7 +358,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     if (data.authenticated) {
                         console.log('[AUTH] User is authenticated, showing authenticated state');
                         showAuthenticatedState(data.user);
-                        loadNamespaces();
+                        // Namespaces already loaded, no need to reload
                     } else {
                         console.log('[AUTH] User not authenticated by backend');
                         showUnauthenticatedState();
@@ -752,6 +740,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 processSignIn();
             }
         });
+        
+        // Load namespaces immediately (no auth required)
+        loadNamespaces();
         
         // Check authentication status
         setTimeout(() => {

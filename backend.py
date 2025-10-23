@@ -690,8 +690,8 @@ def search():
 
 # API endpoint to get available namespaces
 @app.route('/api/namespaces', methods=['GET'])
-@require_approved_user
 def get_namespaces():
+    """Get available arrondissements - no authentication required"""
     return jsonify({"namespaces": AVAILABLE_NAMESPACES})
 
 # Stripe payment endpoints
