@@ -357,12 +357,15 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     
                     if (data.authenticated) {
                         if (data.user.status === 'approved') {
+                            console.log('[AUTH] User is approved, showing authenticated state');
                             showAuthenticatedState(data.user);
                             loadNamespaces();
                         } else {
+                            console.log('[AUTH] User is not approved, status:', data.user.status);
                             showPendingState(data.user);
                         }
                     } else {
+                        console.log('[AUTH] User not authenticated by backend');
                         showUnauthenticatedState();
                     }
                 } catch (error) {
@@ -376,23 +379,29 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     }
     
     function showAuthenticatedState(user) {
-        authStatus.style.display = 'none';
+        authStatus.style.display = 'block';
         authStatus.style.background = '#d1fae5';
-        authText.textContent = `Welcome, ${user.email}! (${user.role})`;
+        authText.textContent = `✅ Welcome, ${user.email}! (${user.role}) - You can now use the app`;
         signInBtn.textContent = 'Sign Out';
         signInBtn.onclick = signOut;
         
         // Enable the form
         form.style.opacity = '1';
         form.style.pointerEvents = 'auto';
+        
+        // Hide sign-in form if it's visible
+        document.getElementById('signInForm').style.display = 'none';
     }
     
     function showPendingState(user) {
         authStatus.style.display = 'block';
         authStatus.style.background = '#fef3c7';
-        authText.textContent = `Account pending approval. Status: ${user.status}`;
-        signInBtn.textContent = 'Send New Sign-In Link';
-        signInBtn.onclick = () => sendSignInLink(user.email);
+        authText.textContent = `⏳ Account pending approval. Status: ${user.status}`;
+        signInBtn.textContent = 'Check Status Again';
+        signInBtn.onclick = () => {
+            console.log('[AUTH] Manual status check...');
+            checkAuthStatus();
+        };
         
         // Disable the form
         form.style.opacity = '0.5';
@@ -632,6 +641,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         setTimeout(() => {
             checkAuthStatus();
         }, 1000); // Wait for Firebase to load
+        
+        // Set up periodic authentication check for pending users
+        setInterval(() => {
+            if (currentUser && authStatus.style.display === 'block' && authText.textContent.includes('pending')) {
+                console.log('[AUTH] Periodic check for pending user...');
+                checkAuthStatus();
+            }
+        }, 30000); // Check every 30 seconds
         
         // ===== MODE BUTTONS =====
         if (modeGroup && modeInput) {
