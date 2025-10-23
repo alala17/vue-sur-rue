@@ -307,8 +307,8 @@ select, .btn{
         </div>
         
         <div class="auth-tabs">
-            <button class="tab-button active" onclick="switchTab('signin')">Se connecter</button>
-            <button class="tab-button" onclick="switchTab('signup')">S'inscrire</button>
+            <button class="tab-button active" id="signinTabBtn">Se connecter</button>
+            <button class="tab-button" id="signupTabBtn">S'inscrire</button>
         </div>
         
         <div id="signinTab" class="tab-content active">
@@ -504,13 +504,22 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     // Authentication functions
     // Tab switching function
     function switchTab(tabName) {
+        console.log('[TAB] Switching to tab:', tabName);
+        
         // Remove active class from all tabs and buttons
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         
         // Add active class to selected tab and button
-        document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
-        document.getElementById(`${tabName}Tab`).classList.add('active');
+        if (tabName === 'signin') {
+            document.getElementById('signinTabBtn').classList.add('active');
+            document.getElementById('signinTab').classList.add('active');
+        } else if (tabName === 'signup') {
+            document.getElementById('signupTabBtn').classList.add('active');
+            document.getElementById('signupTab').classList.add('active');
+        }
+        
+        console.log('[TAB] Tab switched successfully');
     }
 
     async function checkAuthStatus() {
@@ -1027,6 +1036,28 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 console.log('[INIT] Sign-up form submitted');
                 e.preventDefault();
                 signUp();
+            });
+        }
+        
+        // Add event listeners for tab buttons
+        const signinTabBtn = document.getElementById('signinTabBtn');
+        const signupTabBtn = document.getElementById('signupTabBtn');
+        
+        console.log('[INIT] Setting up tab buttons...');
+        console.log('[INIT] signinTabBtn found:', !!signinTabBtn);
+        console.log('[INIT] signupTabBtn found:', !!signupTabBtn);
+        
+        if (signinTabBtn) {
+            signinTabBtn.addEventListener('click', function() {
+                console.log('[INIT] Sign-in tab clicked');
+                switchTab('signin');
+            });
+        }
+        
+        if (signupTabBtn) {
+            signupTabBtn.addEventListener('click', function() {
+                console.log('[INIT] Sign-up tab clicked');
+                switchTab('signup');
             });
         }
         
