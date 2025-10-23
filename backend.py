@@ -25,6 +25,10 @@ except ImportError:
     # dotenv not installed, continue without it
     pass
 
+# Import authentication modules
+from auth import initialize_firebase, require_approved_user, require_admin, get_current_user
+from user_manager import user_manager, UserStatus, UserRole
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("advanced_image_search")
 
@@ -537,6 +541,11 @@ def database_matching_search_pipeline(
 
 logger.info("Application starting with lazy loading...")
 
+# Initialize Firebase Auth
+firebase_initialized = initialize_firebase()
+if not firebase_initialized:
+    logger.warning("Firebase Auth not initialized - authentication will be disabled")
+
 # Flask app setup
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend-backend communication
@@ -556,8 +565,14 @@ def _decode_data_url(data_url: str) -> Optional[bytes]:
 def serve_frontend():
     return send_from_directory('.', 'frontend.html')
 
+# Serve the admin panel
+@app.route('/admin')
+def serve_admin():
+    return send_from_directory('.', 'admin.html')
+
 # API endpoint for image search
 @app.route('/api/search', methods=['POST'])
+@require_approved_user
 def search():
     try:
         data = request.get_json()
@@ -621,8 +636,134 @@ def search():
 
 # API endpoint to get available namespaces
 @app.route('/api/namespaces', methods=['GET'])
+@require_approved_user
 def get_namespaces():
     return jsonify({"namespaces": AVAILABLE_NAMESPACES})
+
+# Authentication endpoints
+@app.route('/api/auth/verify', methods=['POST'])
+def verify_auth():
+    """Verify user authentication and return user status"""
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'No authorization header'}), 401
+        
+        token = auth_header[7:]
+        from auth import get_user_from_token
+        user_info = get_user_from_token(token)
+        
+        if not user_info:
+            return jsonify({'error': 'Invalid or expired token'}), 401
+        
+        # Check if user exists in our system
+        user = user_manager.get_user(user_info['email'])
+        if not user:
+            # Create new user if they don't exist
+            user = user_manager.create_user(
+                email=user_info['email'],
+                firebase_uid=user_info['uid']
+            )
+        
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'email': user.email,
+                'status': user.status.value,
+                'role': user.role.value,
+                'created_at': user.created_at,
+                'last_login': user.last_login
+            }
+        })
+        
+    except Exception as e:
+        logger.exception(f"Auth verification error: {e}")
+        return jsonify({"error": f"Auth verification failed: {str(e)}"}), 500
+
+# Admin endpoints
+@app.route('/api/admin/users', methods=['GET'])
+@require_admin
+def get_all_users():
+    """Get all users (admin only)"""
+    try:
+        users = user_manager.get_all_users()
+        users_data = []
+        for user in users:
+            users_data.append({
+                'email': user.email,
+                'status': user.status.value,
+                'role': user.role.value,
+                'created_at': user.created_at,
+                'updated_at': user.updated_at,
+                'invited_by': user.invited_by,
+                'last_login': user.last_login
+            })
+        
+        return jsonify({'users': users_data})
+        
+    except Exception as e:
+        logger.exception(f"Get users error: {e}")
+        return jsonify({"error": f"Failed to get users: {str(e)}"}), 500
+
+@app.route('/api/admin/users/<email>/status', methods=['PUT'])
+@require_admin
+def update_user_status(email):
+    """Update user status (admin only)"""
+    try:
+        data = request.get_json()
+        if not data or 'status' not in data:
+            return jsonify({"error": "Status is required"}), 400
+        
+        try:
+            new_status = UserStatus(data['status'])
+        except ValueError:
+            return jsonify({"error": "Invalid status"}), 400
+        
+        if user_manager.update_user_status(email, new_status):
+            return jsonify({'message': f'User {email} status updated to {new_status.value}'})
+        else:
+            return jsonify({"error": "User not found"}), 404
+            
+    except Exception as e:
+        logger.exception(f"Update user status error: {e}")
+        return jsonify({"error": f"Failed to update user status: {str(e)}"}), 500
+
+@app.route('/api/admin/users/<email>/role', methods=['PUT'])
+@require_admin
+def update_user_role(email):
+    """Update user role (admin only)"""
+    try:
+        data = request.get_json()
+        if not data or 'role' not in data:
+            return jsonify({"error": "Role is required"}), 400
+        
+        try:
+            new_role = UserRole(data['role'])
+        except ValueError:
+            return jsonify({"error": "Invalid role"}), 400
+        
+        if user_manager.update_user_role(email, new_role):
+            return jsonify({'message': f'User {email} role updated to {new_role.value}'})
+        else:
+            return jsonify({"error": "User not found"}), 404
+            
+    except Exception as e:
+        logger.exception(f"Update user role error: {e}")
+        return jsonify({"error": f"Failed to update user role: {str(e)}"}), 500
+
+@app.route('/api/admin/users/<email>', methods=['DELETE'])
+@require_admin
+def delete_user(email):
+    """Delete a user (admin only)"""
+    try:
+        if user_manager.delete_user(email):
+            return jsonify({'message': f'User {email} deleted successfully'})
+        else:
+            return jsonify({"error": "User not found"}), 404
+            
+    except Exception as e:
+        logger.exception(f"Delete user error: {e}")
+        return jsonify({"error": f"Failed to delete user: {str(e)}"}), 500
 
 @app.route('/health')
 def health():

@@ -7,3 +7,6 @@ gunicorn
 python-dotenv
 torch
 torchvision
+firebase-admin
+pyjwt
+cryptography

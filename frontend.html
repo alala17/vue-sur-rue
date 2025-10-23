@@ -157,6 +157,10 @@ select, .btn{
 <div id="connectionStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #f0f0f0; text-align: center;">
     <strong>Connection Status:</strong> <span id="statusText">Testing connection...</span>
 </div>
+<div id="authStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #fff3cd; text-align: center; display: none;">
+    <strong>Authentication:</strong> <span id="authText">Please sign in to continue</span>
+    <button id="signInBtn" class="btn btn-primary" style="margin-left: 10px;">Sign In</button>
+</div>
 <form id="searchForm" class="stack" novalidate>
 <!-- Step 1: Arrondissement -->
 <div>
@@ -215,6 +219,32 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <div class="loader" aria-label="Recherche en cours"></div>
 </div>
 <script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script type="module">
+    // Firebase Auth will be added here
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyC4w-Qy9BaqVquV_cZHghb4ob1NnQ0hfVg",
+        authDomain: "vue-sur-rue.firebaseapp.com",
+        projectId: "vue-sur-rue",
+        storageBucket: "vue-sur-rue.firebasestorage.app",
+        messagingSenderId: "951380095559",
+        appId: "1:951380095559:web:2e81b3e2d0ada9789cf762",
+        measurementId: "G-MWSHTN3ZCN"
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    // Make auth available globally
+    window.firebaseAuth = auth;
+    window.sendSignInLinkToEmail = sendSignInLinkToEmail;
+    window.isSignInWithEmailLink = isSignInWithEmailLink;
+    window.signInWithEmailLink = signInWithEmailLink;
+</script>
 <script>
 (function() {
     'use strict';
@@ -223,6 +253,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     // Global state
     let cropper = null;
     let availableNamespaces = [];
+    let currentUser = null;
+    let authToken = null;
     
     // Get all elements
     const namespaceSelect = document.getElementById('namespaceSelect');
@@ -243,6 +275,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     const queryImage = document.getElementById('queryImage');
     const resultsGrid = document.getElementById('resultsGrid');
     const statusText = document.getElementById('statusText');
+    const authStatus = document.getElementById('authStatus');
+    const authText = document.getElementById('authText');
+    const signInBtn = document.getElementById('signInBtn');
     
     // Load available namespaces from backend
     async function loadNamespaces() {
@@ -277,6 +312,131 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.error('[API] Failed to load namespaces:', error);
             if (statusText) statusText.textContent = `❌ Connection failed: ${error.message}`;
             showError(`Impossible de charger les arrondissements disponibles: ${error.message}`);
+        }
+    }
+    
+    // Authentication functions
+    async function checkAuthStatus() {
+        if (!window.firebaseAuth) {
+            console.log('[AUTH] Firebase not loaded yet');
+            return;
+        }
+        
+        const auth = window.firebaseAuth;
+        
+        // Check if user is signed in
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                authToken = await user.getIdToken();
+                
+                // Verify with backend
+                try {
+                    const response = await fetch('/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.authenticated) {
+                        if (data.user.status === 'approved') {
+                            showAuthenticatedState(data.user);
+                            loadNamespaces();
+                        } else {
+                            showPendingState(data.user);
+                        }
+                    } else {
+                        showUnauthenticatedState();
+                    }
+                } catch (error) {
+                    console.error('[AUTH] Verification failed:', error);
+                    showUnauthenticatedState();
+                }
+            } else {
+                showUnauthenticatedState();
+            }
+        });
+    }
+    
+    function showAuthenticatedState(user) {
+        authStatus.style.display = 'none';
+        authStatus.style.background = '#d1fae5';
+        authText.textContent = `Welcome, ${user.email}! (${user.role})`;
+        signInBtn.textContent = 'Sign Out';
+        signInBtn.onclick = signOut;
+        
+        // Enable the form
+        form.style.opacity = '1';
+        form.style.pointerEvents = 'auto';
+    }
+    
+    function showPendingState(user) {
+        authStatus.style.display = 'block';
+        authStatus.style.background = '#fef3c7';
+        authText.textContent = `Account pending approval. Status: ${user.status}`;
+        signInBtn.textContent = 'Sign Out';
+        signInBtn.onclick = signOut;
+        
+        // Disable the form
+        form.style.opacity = '0.5';
+        form.style.pointerEvents = 'none';
+    }
+    
+    function showUnauthenticatedState() {
+        authStatus.style.display = 'block';
+        authStatus.style.background = '#fff3cd';
+        authText.textContent = 'Please sign in to continue';
+        signInBtn.textContent = 'Sign In';
+        signInBtn.onclick = signIn;
+        
+        // Disable the form
+        form.style.opacity = '0.5';
+        form.style.pointerEvents = 'none';
+    }
+    
+    async function signIn() {
+        const email = prompt('Enter your email address:');
+        if (email) {
+            try {
+                const actionCodeSettings = {
+                    url: window.location.origin,
+                    handleCodeInApp: true,
+                };
+                
+                await window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings);
+                window.localStorage.setItem('emailForSignIn', email);
+                alert('Sign-in link sent to your email! Check your inbox and click the link.');
+            } catch (error) {
+                alert('Failed to send sign-in link: ' + error.message);
+            }
+        }
+    }
+    
+    async function signOut() {
+        if (window.firebaseAuth) {
+            await window.firebaseAuth.signOut();
+        }
+    }
+    
+    // Handle email link sign-in
+    async function handleEmailLinkSignIn() {
+        if (window.firebaseAuth && window.isSignInWithEmailLink(window.firebaseAuth, window.location.href)) {
+            let email = window.localStorage.getItem('emailForSignIn');
+            if (!email) {
+                email = prompt('Please provide your email for confirmation');
+            }
+            
+            try {
+                await window.signInWithEmailLink(window.firebaseAuth, email, window.location.href);
+                window.localStorage.removeItem('emailForSignIn');
+                window.location.href = window.location.origin;
+            } catch (error) {
+                alert('Sign-in failed: ' + error.message);
+            }
         }
     }
     
@@ -334,11 +494,18 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     // Perform search
     async function performSearch(namespace, mode, imageBase64Data) {
         try {
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            
+            // Add authorization header if user is authenticated
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+            
             const response = await fetch('/api/search', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
                 body: JSON.stringify({
                     namespace: namespace,
                     mode: mode,
@@ -376,8 +543,13 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         console.log('- pickBtn:', !!pickBtn);
         console.log('- fileInput:', !!fileInput);
         
-        // Load namespaces
-        loadNamespaces();
+        // Handle email link sign-in first
+        handleEmailLinkSignIn();
+        
+        // Check authentication status
+        setTimeout(() => {
+            checkAuthStatus();
+        }, 1000); // Wait for Firebase to load
         
         // ===== MODE BUTTONS =====
         if (modeGroup && modeInput) {

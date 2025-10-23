@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vue sur Rue - Admin Panel</title>
+    <style>
+        :root {
+            --violet-1: #7b5cff;
+            --violet-2: #a076ff;
+            --violet-3: #e9e3ff;
+            --text: #1f2430;
+            --muted: #6b7280;
+            --card: #ffffff;
+            --border: #ececec;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            color: var(--text);
+            background: linear-gradient(180deg, #f7f6ff 0%, #ffffff 60%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: var(--violet-1);
+            font-size: 1.5rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: var(--violet-1);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--violet-2);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-error {
+            background: var(--error);
+            color: white;
+        }
+        
+        .btn-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-revoked {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .role-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .role-user {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .role-admin {
+            background: #fce7f3;
+            color: #be185d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+        
+        .auth-section {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Vue sur Rue - Admin Panel</h1>
+    </div>
+    
+    <div class="container">
+        <!-- Authentication Section -->
+        <div id="authSection" class="card auth-section">
+            <h2>Admin Authentication Required</h2>
+            <p>Please sign in with your admin account to access the user management panel.</p>
+            <button id="signInBtn" class="btn btn-primary">Sign In with Email</button>
+        </div>
+        
+        <!-- Main Admin Panel -->
+        <div id="adminPanel" class="hidden">
+            <div class="card">
+                <h2>User Management</h2>
+                <p>Manage user access and permissions for Vue sur Rue.</p>
+                
+                <div id="messageArea"></div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <button id="refreshBtn" class="btn btn-primary">Refresh Users</button>
+                </div>
+                
+                <div id="usersTableContainer">
+                    <div class="loading">Loading users...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC4w-Qy9BaqVquV_cZHghb4ob1NnQ0hfVg",
+            authDomain: "vue-sur-rue.firebaseapp.com",
+            projectId: "vue-sur-rue",
+            storageBucket: "vue-sur-rue.firebasestorage.app",
+            messagingSenderId: "951380095559",
+            appId: "1:951380095559:web:2e81b3e2d0ada9789cf762",
+            measurementId: "G-MWSHTN3ZCN"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Global state
+        let currentUser = null;
+        let authToken = null;
+        
+        // DOM elements
+        const authSection = document.getElementById('authSection');
+        const adminPanel = document.getElementById('adminPanel');
+        const signInBtn = document.getElementById('signInBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const messageArea = document.getElementById('messageArea');
+        const usersTableContainer = document.getElementById('usersTableContainer');
+        
+        // Check if user is already signed in
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                authToken = await user.getIdToken();
+                
+                // Verify with backend
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.authenticated && data.user.role === 'admin') {
+                    showAdminPanel();
+                    loadUsers();
+                } else {
+                    showMessage('Access denied. Admin privileges required.', 'error');
+                    signOut();
+                }
+            } else {
+                showAuthSection();
+            }
+        });
+        
+        // Handle email link sign-in
+        if (isSignInWithEmailLink(auth, window.location.href)) {
+            let email = window.localStorage.getItem('emailForSignIn');
+            if (!email) {
+                email = window.prompt('Please provide your email for confirmation');
+            }
+            
+            signInWithEmailLink(auth, email, window.location.href)
+                .then(() => {
+                    window.localStorage.removeItem('emailForSignIn');
+                    window.location.href = '/admin';
+                })
+                .catch((error) => {
+                    showMessage('Sign-in failed: ' + error.message, 'error');
+                });
+        }
+        
+        // Sign in button click
+        signInBtn.addEventListener('click', () => {
+            const email = prompt('Enter your admin email address:');
+            if (email) {
+                sendSignInLink(email);
+            }
+        });
+        
+        // Send sign-in link
+        async function sendSignInLink(email) {
+            const actionCodeSettings = {
+                url: window.location.origin + '/admin',
+                handleCodeInApp: true,
+            };
+            
+            try {
+                await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+                window.localStorage.setItem('emailForSignIn', email);
+                showMessage('Sign-in link sent to your email! Check your inbox and click the link.', 'success');
+            } catch (error) {
+                showMessage('Failed to send sign-in link: ' + error.message, 'error');
+            }
+        }
+        
+        // Sign out
+        function signOut() {
+            auth.signOut();
+            showAuthSection();
+        }
+        
+        // Show sections
+        function showAuthSection() {
+            authSection.classList.remove('hidden');
+            adminPanel.classList.add('hidden');
+        }
+        
+        function showAdminPanel() {
+            authSection.classList.add('hidden');
+            adminPanel.classList.remove('hidden');
+        }
+        
+        // Show messages
+        function showMessage(message, type) {
+            messageArea.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                messageArea.innerHTML = '';
+            }, 5000);
+        }
+        
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/admin/users', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+                
+                const data = await response.json();
+                renderUsersTable(data.users);
+                
+            } catch (error) {
+                showMessage('Failed to load users: ' + error.message, 'error');
+                usersTableContainer.innerHTML = '<div class="error">Failed to load users</div>';
+            }
+        }
+        
+        // Render users table
+        function renderUsersTable(users) {
+            if (users.length === 0) {
+                usersTableContainer.innerHTML = '<p>No users found.</p>';
+                return;
+            }
+            
+            const table = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Role</th>
+                            <th>Created</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${users.map(user => `
+                            <tr>
+                                <td>${user.email}</td>
+                                <td><span class="status-badge status-${user.status}">${user.status}</span></td>
+                                <td><span class="role-badge role-${user.role}">${user.role}</span></td>
+                                <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                                <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}</td>
+                                <td class="actions">
+                                    ${user.status === 'pending' ? 
+                                        `<button class="btn btn-success btn-small" onclick="updateUserStatus('${user.email}', 'approved')">Approve</button>` : 
+                                        user.status === 'approved' ? 
+                                            `<button class="btn btn-warning btn-small" onclick="updateUserStatus('${user.email}', 'revoked')">Revoke</button>` :
+                                            `<button class="btn btn-success btn-small" onclick="updateUserStatus('${user.email}', 'approved')">Approve</button>`
+                                    }
+                                    ${user.role === 'user' ? 
+                                        `<button class="btn btn-primary btn-small" onclick="updateUserRole('${user.email}', 'admin')">Make Admin</button>` :
+                                        `<button class="btn btn-warning btn-small" onclick="updateUserRole('${user.email}', 'user')">Remove Admin</button>`
+                                    }
+                                    <button class="btn btn-error btn-small" onclick="deleteUser('${user.email}')">Delete</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            usersTableContainer.innerHTML = table;
+        }
+        
+        // Update user status
+        window.updateUserStatus = async function(email, status) {
+            try {
+                const response = await fetch(`/api/admin/users/${encodeURIComponent(email)}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to update user status');
+                }
+                
+                showMessage(`User ${email} status updated to ${status}`, 'success');
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Failed to update user status: ' + error.message, 'error');
+            }
+        };
+        
+        // Update user role
+        window.updateUserRole = async function(email, role) {
+            try {
+                const response = await fetch(`/api/admin/users/${encodeURIComponent(email)}/role`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ role })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to update user role');
+                }
+                
+                showMessage(`User ${email} role updated to ${role}`, 'success');
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Failed to update user role: ' + error.message, 'error');
+            }
+        };
+        
+        // Delete user
+        window.deleteUser = async function(email) {
+            if (!confirm(`Are you sure you want to delete user ${email}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/users/${encodeURIComponent(email)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete user');
+                }
+                
+                showMessage(`User ${email} deleted successfully`, 'success');
+                loadUsers();
+                
+            } catch (error) {
+                showMessage('Failed to delete user: ' + error.message, 'error');
+            }
+        };
+        
+        // Refresh button
+        refreshBtn.addEventListener('click', loadUsers);
+        
+        // Add sign out button
+        const header = document.querySelector('.header');
+        const signOutBtn = document.createElement('button');
+        signOutBtn.textContent = 'Sign Out';
+        signOutBtn.className = 'btn btn-error';
+        signOutBtn.style.float = 'right';
+        signOutBtn.addEventListener('click', signOut);
+        header.appendChild(signOutBtn);
+    </script>
+</body>
+</html>

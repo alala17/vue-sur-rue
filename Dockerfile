@@ -16,6 +16,9 @@ RUN python -m pip install --upgrade pip wheel setuptools \
 # Copie du code
 COPY backend.py .
 COPY frontend.html .
+COPY admin.html .
+COPY auth.py .
+COPY user_manager.py .
 
 # Optionnel : répertoire cache torch/hub (évite d'encombrer /root)
 ENV TORCH_HOME=/app/.cache/torch
