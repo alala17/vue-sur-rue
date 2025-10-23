@@ -1011,6 +1011,53 @@ def check_usage():
         logger.exception(f"Usage check error: {e}")
         return jsonify({"error": f"Usage check failed: {str(e)}"}), 500
 
+@app.route('/api/debug/user-status', methods=['GET'])
+@require_approved_user
+def debug_user_status():
+    """Debug endpoint to check user status in detail"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 400
+        
+        user_email = current_user['email']
+        user = user_manager.get_user(user_email)
+        
+        if not user:
+            return jsonify({"error": "User not found in database"}), 400
+        
+        # Check usage limits
+        usage_check = user_manager.check_usage_limits(user_email)
+        
+        # Get all user data
+        user_data = {
+            "email": user.email,
+            "status": user.status.value,
+            "role": user.role.value,
+            "subscription_status": user.subscription_status,
+            "free_usage_count": user.free_usage_count,
+            "paid_usage_count": user.paid_usage_count,
+            "last_usage_reset": user.last_usage_reset,
+            "stripe_customer_id": user.stripe_customer_id,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at
+        }
+        
+        return jsonify({
+            "user_data": user_data,
+            "usage_check": usage_check,
+            "debug_info": {
+                "has_active_subscription": user.subscription_status == "active",
+                "free_limit_reached": user.free_usage_count >= 1,
+                "paid_limit_reached": user.paid_usage_count >= 2,
+                "should_use_paid_limit": user.subscription_status == "active"
+            }
+        })
+        
+    except Exception as e:
+        logger.exception(f"Debug user status error: {e}")
+        return jsonify({"error": f"Debug failed: {str(e)}"}), 500
+
 # Admin password authentication endpoint
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():

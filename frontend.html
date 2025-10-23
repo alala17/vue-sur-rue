@@ -448,6 +448,7 @@ select, .btn{
         <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
         <br>
         <button id="checkSubscriptionBtn" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
+        <button id="debugStatusBtn" class="btn btn-primary" style="background: #6c757d; border-color: #6c757d; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Debug Status</button>
     </div>
     <button id="signOutBtn" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
@@ -1179,6 +1180,53 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
     }
     
+    async function debugUserStatus() {
+        console.log('[DEBUG] Checking detailed user status...');
+        try {
+            const response = await fetch('/api/debug/user-status', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            console.log('[DEBUG] Debug response:', data);
+            
+            if (response.ok) {
+                let message = `🔍 Debug Status:\n\n`;
+                message += `📧 Email: ${data.user_data.email}\n`;
+                message += `📊 Statut: ${data.user_data.status}\n`;
+                message += `👤 Rôle: ${data.user_data.role}\n`;
+                message += `💳 Abonnement: ${data.user_data.subscription_status}\n`;
+                message += `🆓 Gratuites: ${data.user_data.free_usage_count}/1\n`;
+                message += `💰 Payantes: ${data.user_data.paid_usage_count}/2\n`;
+                message += `🆔 Customer ID: ${data.user_data.stripe_customer_id || 'Aucun'}\n\n`;
+                
+                message += `🔍 Debug Info:\n`;
+                message += `• A un abonnement actif: ${data.debug_info.has_active_subscription}\n`;
+                message += `• Limite gratuite atteinte: ${data.debug_info.free_limit_reached}\n`;
+                message += `• Limite payante atteinte: ${data.debug_info.paid_limit_reached}\n`;
+                message += `• Devrait utiliser limite payante: ${data.debug_info.should_use_paid_limit}\n\n`;
+                
+                message += `✅ Usage Check:\n`;
+                message += `• Peut rechercher: ${data.usage_check.can_search}\n`;
+                message += `• Raison: ${data.usage_check.reason}\n`;
+                if (data.usage_check.message) {
+                    message += `• Message: ${data.usage_check.message}`;
+                }
+                
+                alert(message);
+            } else {
+                alert('Erreur lors du debug: ' + data.error);
+            }
+            
+        } catch (error) {
+            console.error('[DEBUG] Error:', error);
+            alert('Erreur lors du debug: ' + error.message);
+        }
+    }
     
     async function sendSignInLink(email) {
         try {
@@ -1427,6 +1475,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         if (checkSubscriptionBtn) {
             checkSubscriptionBtn.addEventListener('click', checkSubscriptionStatus);
+        }
+        
+        // Add event listener for debug button
+        const debugStatusBtn = document.getElementById('debugStatusBtn');
+        console.log('[INIT] debugStatusBtn found:', !!debugStatusBtn);
+        
+        if (debugStatusBtn) {
+            debugStatusBtn.addEventListener('click', debugUserStatus);
         }
         
         // Add event listener for sign out button

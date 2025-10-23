@@ -242,23 +242,32 @@ class UserManager:
         # Check if monthly reset is needed
         self._check_monthly_reset(user)
         
+        # Debug logging
+        logger.info(f"Usage check for {email}: subscription_status={user.subscription_status}, free_usage={user.free_usage_count}, paid_usage={user.paid_usage_count}")
+        
         # Check usage limits
         if user.subscription_status == "active":
             # User has active subscription - check paid usage limit
             if user.paid_usage_count >= 2:
+                logger.info(f"User {email} blocked: paid usage limit reached ({user.paid_usage_count}/2)")
                 return {
                     "can_search": False,
                     "reason": "monthly_limit_reached", 
                     "message": "You've reached your monthly limit of 2 searches. Reset next month."
                 }
+            else:
+                logger.info(f"User {email} allowed: active subscription, paid usage {user.paid_usage_count}/2")
         else:
             # User has no active subscription - check free usage limit
             if user.free_usage_count >= 1:
+                logger.info(f"User {email} blocked: free usage limit reached ({user.free_usage_count}/1)")
                 return {
                     "can_search": False, 
                     "reason": "free_limit_reached",
                     "message": "You've used your free search. Please subscribe to continue."
                 }
+            else:
+                logger.info(f"User {email} allowed: no subscription, free usage {user.free_usage_count}/1")
         
         return {"can_search": True, "reason": "allowed"}
     
@@ -320,8 +329,15 @@ class UserManager:
         if not user:
             return False
         
+        old_status = user.subscription_status
         user.subscription_status = status
         user.updated_at = datetime.utcnow().isoformat()
+        
+        # If subscription just became active, reset paid usage count
+        if old_status != "active" and status == "active":
+            user.paid_usage_count = 0
+            logger.info(f"Subscription activated for {email}, reset paid usage count to 0")
+        
         self.save_users()
         return True
 
