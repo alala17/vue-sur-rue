@@ -154,6 +154,68 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
+.auth-divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border);
+}
+
+.auth-divider span {
+    background: white;
+    padding: 0 15px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.google-signin-btn {
+    width: 100%;
+    padding: 15px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    color: var(--text);
+}
+
+.google-signin-btn:hover {
+    border-color: #4285F4;
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.2);
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.auth-links a {
+    color: var(--violet-1);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.auth-links a:hover {
+    color: var(--violet-2);
+    text-decoration: underline;
+}
 form{ position: relative; z-index: 1; }
 .hero{ background:#ffffff; color:var(--violet-1); padding: 28px 20px 18px; border-bottom: 1px solid var(--border); }
 .hero-inner{ max-width: 1100px; margin: 0 auto; display:flex; align-items:center; gap:16px; }
@@ -313,20 +375,50 @@ select, .btn{
         
         <div id="signinTab" class="tab-content active">
             <h3>Connexion</h3>
-            <p>Vous avez déjà un compte ? Entrez votre email pour recevoir un lien de connexion.</p>
+            <p>Connectez-vous avec votre email et mot de passe, ou utilisez Google.</p>
             <form id="signInForm">
                 <input type="email" id="signinEmail" placeholder="Votre adresse email" required>
-                <button type="submit">Envoyer le lien de connexion</button>
+                <input type="password" id="signinPassword" placeholder="Votre mot de passe" required>
+                <button type="submit">Se connecter</button>
             </form>
+            <div class="auth-divider">
+                <span>ou</span>
+            </div>
+            <button id="googleSignInBtn" class="google-signin-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuer avec Google
+            </button>
+            <div class="auth-links">
+                <a href="#" id="forgotPasswordLink">Mot de passe oublié ?</a>
+            </div>
         </div>
         
         <div id="signupTab" class="tab-content">
             <h3>Inscription</h3>
-            <p>Nouveau sur Vue Sur Rue ? Entrez votre email pour créer un compte.</p>
+            <p>Créez votre compte avec votre email et mot de passe, ou utilisez Google.</p>
             <form id="signUpForm">
                 <input type="email" id="signupEmail" placeholder="Votre adresse email" required>
+                <input type="password" id="signupPassword" placeholder="Créez un mot de passe" required>
+                <input type="password" id="signupPasswordConfirm" placeholder="Confirmez votre mot de passe" required>
                 <button type="submit">Créer un compte</button>
             </form>
+            <div class="auth-divider">
+                <span>ou</span>
+            </div>
+            <button id="googleSignUpBtn" class="google-signin-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuer avec Google
+            </button>
         </div>
         
         <div id="authMessage" class="auth-message"></div>
@@ -408,7 +500,18 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <script type="module">
     // Firebase Auth will be added here
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signInWithEmailLink, isSignInWithEmailLink, sendSignInLinkToEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { 
+        getAuth, 
+        signInWithEmailLink, 
+        isSignInWithEmailLink, 
+        sendSignInLinkToEmail,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        signInWithPopup,
+        GoogleAuthProvider,
+        sendEmailVerification,
+        sendPasswordResetEmail
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     
     // Firebase configuration
     const firebaseConfig = {
@@ -597,29 +700,121 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function signIn() {
         console.log('[SIGNIN] Sign in function called');
         const email = document.getElementById('signinEmail').value.trim();
-        console.log('[SIGNIN] Email:', email);
+        const password = document.getElementById('signinPassword').value;
         
-        if (!email) {
-            showAuthMessage('Veuillez entrer votre adresse email.', 'error');
+        if (!email || !password) {
+            showAuthMessage('Veuillez entrer votre email et mot de passe.', 'error');
             return;
         }
         
-        console.log('[SIGNIN] Sending sign-in link for:', email);
-        await sendSignInLink(email);
+        try {
+            showAuthMessage('Connexion en cours...', 'success');
+            const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, email, password);
+            console.log('[SIGNIN] User signed in:', userCredential.user);
+            showAuthMessage('Connexion réussie !', 'success');
+        } catch (error) {
+            console.error('[SIGNIN] Error:', error);
+            let errorMessage = 'Erreur de connexion.';
+            
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'Aucun compte trouvé avec cet email.';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = 'Mot de passe incorrect.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Adresse email invalide.';
+                    break;
+                case 'auth/user-disabled':
+                    errorMessage = 'Ce compte a été désactivé.';
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage = 'Trop de tentatives. Réessayez plus tard.';
+                    break;
+            }
+            
+            showAuthMessage(errorMessage, 'error');
+        }
     }
     
     async function signUp() {
         console.log('[SIGNUP] Sign up function called');
         const email = document.getElementById('signupEmail').value.trim();
-        console.log('[SIGNUP] Email:', email);
+        const password = document.getElementById('signupPassword').value;
+        const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+        
+        if (!email || !password || !passwordConfirm) {
+            showAuthMessage('Veuillez remplir tous les champs.', 'error');
+            return;
+        }
+        
+        if (password !== passwordConfirm) {
+            showAuthMessage('Les mots de passe ne correspondent pas.', 'error');
+            return;
+        }
+        
+        if (password.length < 6) {
+            showAuthMessage('Le mot de passe doit contenir au moins 6 caractères.', 'error');
+            return;
+        }
+        
+        try {
+            showAuthMessage('Création du compte en cours...', 'success');
+            const userCredential = await createUserWithEmailAndPassword(window.firebaseAuth, email, password);
+            console.log('[SIGNUP] User created:', userCredential.user);
+            
+            // Send email verification
+            await sendEmailVerification(userCredential.user);
+            showAuthMessage('Compte créé ! Vérifiez votre email pour activer votre compte.', 'success');
+            
+        } catch (error) {
+            console.error('[SIGNUP] Error:', error);
+            let errorMessage = 'Erreur lors de la création du compte.';
+            
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    errorMessage = 'Un compte existe déjà avec cet email.';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Adresse email invalide.';
+                    break;
+                case 'auth/weak-password':
+                    errorMessage = 'Le mot de passe est trop faible.';
+                    break;
+            }
+            
+            showAuthMessage(errorMessage, 'error');
+        }
+    }
+    
+    async function signInWithGoogle() {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(window.firebaseAuth, provider);
+            console.log('[GOOGLE] User signed in:', result.user);
+            showAuthMessage('Connexion Google réussie !', 'success');
+        } catch (error) {
+            console.error('[GOOGLE] Error:', error);
+            showAuthMessage('Erreur lors de la connexion Google.', 'error');
+        }
+    }
+    
+    async function resetPassword() {
+        const email = document.getElementById('signinEmail').value.trim();
         
         if (!email) {
             showAuthMessage('Veuillez entrer votre adresse email.', 'error');
             return;
         }
         
-        console.log('[SIGNUP] Sending sign-in link for:', email);
-        await sendSignInLink(email);
+        try {
+            await sendPasswordResetEmail(window.firebaseAuth, email);
+            showAuthMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte email.', 'success');
+        } catch (error) {
+            console.error('[RESET] Error:', error);
+            showAuthMessage('Erreur lors de l\'envoi de l\'email de réinitialisation.', 'error');
+        }
     }
     
     function showAuthMessage(message, type) {
@@ -1058,6 +1253,31 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             signupTabBtn.addEventListener('click', function() {
                 console.log('[INIT] Sign-up tab clicked');
                 switchTab('signup');
+            });
+        }
+        
+        // Add event listeners for Google sign-in buttons
+        const googleSignInBtn = document.getElementById('googleSignInBtn');
+        const googleSignUpBtn = document.getElementById('googleSignUpBtn');
+        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+        
+        console.log('[INIT] Setting up Google auth buttons...');
+        console.log('[INIT] googleSignInBtn found:', !!googleSignInBtn);
+        console.log('[INIT] googleSignUpBtn found:', !!googleSignUpBtn);
+        console.log('[INIT] forgotPasswordLink found:', !!forgotPasswordLink);
+        
+        if (googleSignInBtn) {
+            googleSignInBtn.addEventListener('click', signInWithGoogle);
+        }
+        
+        if (googleSignUpBtn) {
+            googleSignUpBtn.addEventListener('click', signInWithGoogle);
+        }
+        
+        if (forgotPasswordLink) {
+            forgotPasswordLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                resetPassword();
             });
         }
         
