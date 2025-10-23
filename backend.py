@@ -6,6 +6,7 @@ import base64
 import re
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
+from datetime import datetime
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -669,6 +670,12 @@ def verify_auth():
                 email=user_info['email'],
                 firebase_uid=user_info['uid']
             )
+        else:
+            # Update Firebase UID if it's different (for default admin)
+            if user.firebase_uid != user_info['uid']:
+                user.firebase_uid = user_info['uid']
+                user.updated_at = datetime.utcnow().isoformat()
+                user_manager.save_users()
         
         return jsonify({
             'authenticated': True,

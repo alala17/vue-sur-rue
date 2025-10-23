@@ -39,6 +39,7 @@ class UserManager:
         self.data_file = data_file
         self.users: Dict[str, User] = {}
         self.load_users()
+        self.ensure_default_admin()
     
     def load_users(self):
         """Load users from JSON file"""
@@ -64,6 +65,35 @@ class UserManager:
             logger.error(f"Error loading users: {e}")
             self.users = {}
     
+    def ensure_default_admin(self):
+        """Ensure the default admin user exists and is approved"""
+        default_admin_email = "alexandre.airvault@gmail.com"
+        
+        if default_admin_email not in self.users:
+            # Create default admin user
+            now = datetime.utcnow().isoformat()
+            default_admin = User(
+                email=default_admin_email,
+                firebase_uid="default-admin",  # Placeholder UID
+                status=UserStatus.APPROVED,
+                role=UserRole.ADMIN,
+                created_at=now,
+                updated_at=now,
+                invited_by="system"
+            )
+            self.users[default_admin_email] = default_admin
+            self.save_users()
+            logger.info(f"Created default admin user: {default_admin_email}")
+        else:
+            # Ensure existing user is admin and approved
+            user = self.users[default_admin_email]
+            if user.status != UserStatus.APPROVED or user.role != UserRole.ADMIN:
+                user.status = UserStatus.APPROVED
+                user.role = UserRole.ADMIN
+                user.updated_at = datetime.utcnow().isoformat()
+                self.save_users()
+                logger.info(f"Updated default admin user: {default_admin_email}")
+    
     def save_users(self):
         """Save users to JSON file"""
         try:
@@ -83,18 +113,36 @@ class UserManager:
     def create_user(self, email: str, firebase_uid: str, invited_by: Optional[str] = None) -> User:
         """Create a new user"""
         now = datetime.utcnow().isoformat()
-        user = User(
-            email=email,
-            firebase_uid=firebase_uid,
-            status=UserStatus.PENDING,
-            role=UserRole.USER,
-            created_at=now,
-            updated_at=now,
-            invited_by=invited_by
-        )
+        
+        # Check if this is the default admin
+        default_admin_email = "alexandre.airvault@gmail.com"
+        if email == default_admin_email:
+            # Create as approved admin
+            user = User(
+                email=email,
+                firebase_uid=firebase_uid,
+                status=UserStatus.APPROVED,
+                role=UserRole.ADMIN,
+                created_at=now,
+                updated_at=now,
+                invited_by="system"
+            )
+            logger.info(f"Created default admin user: {email}")
+        else:
+            # Create as regular pending user
+            user = User(
+                email=email,
+                firebase_uid=firebase_uid,
+                status=UserStatus.PENDING,
+                role=UserRole.USER,
+                created_at=now,
+                updated_at=now,
+                invited_by=invited_by
+            )
+            logger.info(f"Created user: {email}")
+        
         self.users[email] = user
         self.save_users()
-        logger.info(f"Created user: {email}")
         return user
     
     def get_user(self, email: str) -> Optional[User]:
