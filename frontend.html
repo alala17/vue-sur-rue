@@ -155,7 +155,7 @@ select, .btn{
 <div class="container">
 <div class="card">
 <div id="connectionStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #f0f0f0; text-align: center;">
-    <strong>Connection Status:</strong> <span id="statusText">Testing connection...</span>
+    <strong>Connection Status:</strong> <span id="statusText">⏳ Waiting for authentication...</span>
 </div>
 <div id="authStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #fff3cd; text-align: center; display: none;">
     <strong>Authentication:</strong> <span id="authText">Please sign in to continue</span>
@@ -298,7 +298,19 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[API] Attempting to fetch namespaces...');
             if (statusText) statusText.textContent = 'Connecting to backend...';
             
-            const response = await fetch('/api/namespaces');
+            // Check if we have an auth token
+            if (!authToken) {
+                console.log('[API] No auth token available, skipping namespace load');
+                if (statusText) statusText.textContent = `⏳ Waiting for authentication...`;
+                return;
+            }
+            
+            const response = await fetch('/api/namespaces', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             console.log('[API] Response status:', response.status);
             console.log('[API] Response headers:', response.headers);
             
@@ -403,6 +415,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             checkAuthStatus();
         };
         
+        // Update connection status
+        if (statusText) statusText.textContent = '⏳ Account pending approval';
+        
         // Disable the form
         form.style.opacity = '0.5';
         form.style.pointerEvents = 'none';
@@ -414,6 +429,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         authText.textContent = 'Please sign in to continue';
         signInBtn.textContent = 'Sign In';
         signInBtn.onclick = signIn;
+        
+        // Update connection status
+        if (statusText) statusText.textContent = '⏳ Please sign in to access the app';
         
         // Disable the form
         form.style.opacity = '0.5';
