@@ -433,6 +433,7 @@ select, .btn{
         <br>
         <button id="checkSubscriptionBtn" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
         <button id="syncStripeBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Sync Stripe</button>
+        <button id="createCustomerBtn" class="btn btn-primary" style="background: #6f42c1; border-color: #6f42c1; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Créer Customer</button>
     </div>
     <button id="signOutBtn" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
@@ -1094,6 +1095,39 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
     }
     
+    async function createStripeCustomer() {
+        console.log('[STRIPE] Creating Stripe customer...');
+        try {
+            const response = await fetch('/api/payment/create-customer', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            console.log('[STRIPE] Create customer response:', data);
+            
+            if (response.ok) {
+                if (data.status === 'success') {
+                    alert(`✅ Customer Stripe créé !\n\n${data.message}\n\nID: ${data.customer_id}`);
+                } else {
+                    alert(`ℹ️ ${data.message}\n\nID: ${data.customer_id}`);
+                }
+                
+                // Refresh usage display
+                await checkUsageStatus();
+            } else {
+                alert('Erreur lors de la création du customer: ' + data.error);
+            }
+            
+        } catch (error) {
+            console.error('[STRIPE] Error:', error);
+            alert('Erreur lors de la création du customer Stripe: ' + error.message);
+        }
+    }
+    
     async function sendSignInLink(email) {
         try {
             const actionCodeSettings = {
@@ -1324,10 +1358,12 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         // Add event listeners for subscription buttons
         const checkSubscriptionBtn = document.getElementById('checkSubscriptionBtn');
         const syncStripeBtn = document.getElementById('syncStripeBtn');
+        const createCustomerBtn = document.getElementById('createCustomerBtn');
         
         console.log('[INIT] Setting up subscription buttons...');
         console.log('[INIT] checkSubscriptionBtn found:', !!checkSubscriptionBtn);
         console.log('[INIT] syncStripeBtn found:', !!syncStripeBtn);
+        console.log('[INIT] createCustomerBtn found:', !!createCustomerBtn);
         
         if (checkSubscriptionBtn) {
             checkSubscriptionBtn.addEventListener('click', checkSubscriptionStatus);
@@ -1335,6 +1371,10 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         if (syncStripeBtn) {
             syncStripeBtn.addEventListener('click', syncStripeSubscription);
+        }
+        
+        if (createCustomerBtn) {
+            createCustomerBtn.addEventListener('click', createStripeCustomer);
         }
         
         // Add event listener for sign out button
