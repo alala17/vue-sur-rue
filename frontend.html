@@ -432,6 +432,7 @@ select, .btn{
         <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
         <br>
         <button onclick="checkSubscriptionStatus()" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
+        <button onclick="syncStripeSubscription()" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Sync Stripe</button>
     </div>
     <button onclick="signOut()" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
@@ -1057,6 +1058,39 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         } catch (error) {
             console.error('[SUBSCRIPTION] Error:', error);
             alert('Erreur lors de la vérification: ' + error.message);
+        }
+    }
+    
+    async function syncStripeSubscription() {
+        console.log('[STRIPE] Syncing subscription with Stripe...');
+        try {
+            const response = await fetch('/api/payment/check-stripe-subscription', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            console.log('[STRIPE] Sync response:', data);
+            
+            if (response.ok) {
+                if (data.status === 'success') {
+                    alert(`✅ Abonnement synchronisé !\n\n${data.message}\n\nID: ${data.subscription_id}`);
+                } else {
+                    alert(`ℹ️ ${data.message}\n\nStatut: ${data.subscription_status}`);
+                }
+                
+                // Refresh usage display
+                await checkUsageStatus();
+            } else {
+                alert('Erreur lors de la synchronisation: ' + data.error);
+            }
+            
+        } catch (error) {
+            console.error('[STRIPE] Error:', error);
+            alert('Erreur lors de la synchronisation Stripe: ' + error.message);
         }
     }
     

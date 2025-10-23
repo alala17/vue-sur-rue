@@ -829,6 +829,53 @@ def manual_activate_subscription():
         logger.exception(f"Manual activation error: {e}")
         return jsonify({"error": f"Activation failed: {str(e)}"}), 500
 
+@app.route('/api/payment/check-stripe-subscription', methods=['POST'])
+@require_approved_user
+def check_stripe_subscription():
+    """Check and sync subscription status from Stripe"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 400
+        
+        user_email = current_user['email']
+        user = user_manager.get_user(user_email)
+        
+        if not user or not user.stripe_customer_id:
+            return jsonify({"error": "No Stripe customer ID found"}), 400
+        
+        logger.info(f"Checking Stripe subscription for customer: {user.stripe_customer_id}")
+        
+        # Get customer's subscriptions from Stripe
+        subscriptions = stripe.Subscription.list(customer=user.stripe_customer_id, status='active')
+        
+        if subscriptions.data:
+            # User has active subscription
+            subscription = subscriptions.data[0]
+            logger.info(f"Found active subscription: {subscription.id}")
+            user_manager.set_subscription_status(user_email, 'active')
+            
+            return jsonify({
+                "status": "success",
+                "message": "Active subscription found and activated",
+                "subscription_id": subscription.id,
+                "subscription_status": "active"
+            })
+        else:
+            # No active subscription found
+            logger.info(f"No active subscription found for customer: {user.stripe_customer_id}")
+            user_manager.set_subscription_status(user_email, 'none')
+            
+            return jsonify({
+                "status": "info",
+                "message": "No active subscription found",
+                "subscription_status": "none"
+            })
+        
+    except Exception as e:
+        logger.exception(f"Stripe subscription check error: {e}")
+        return jsonify({"error": f"Subscription check failed: {str(e)}"}), 500
+
 @app.route('/api/usage/check', methods=['GET'])
 @require_approved_user
 def check_usage():
