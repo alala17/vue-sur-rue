@@ -203,6 +203,10 @@ class UserManager:
             # Create user if they don't exist and auto-approve them
             user = self.create_user(email=email, firebase_uid=f"auto-{email.replace('@', '-').replace('.', '-')}")
             user.status = UserStatus.APPROVED
+            # Ensure usage fields are properly initialized
+            user.free_usage_count = 0
+            user.paid_usage_count = 0
+            user.subscription_status = "none"
             self.save_users()
             logger.info(f"Auto-created and approved user: {email}")
         return True  # Always approve users

@@ -615,10 +615,14 @@ def search():
         # Get current user
         current_user = get_current_user()
         if not current_user:
+            logger.error("No current user found in search")
             return jsonify({"error": "User not found"}), 400
+        
+        logger.info(f"Search request from user: {current_user['email']}")
         
         # Check usage limits
         usage_check = user_manager.check_usage_limits(current_user['email'])
+        logger.info(f"Usage check result: {usage_check}")
         if not usage_check["can_search"]:
             return jsonify({
                 "error": "Usage limit reached",

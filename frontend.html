@@ -564,7 +564,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     <p style="margin-bottom: 20px; font-size: 14px; color: #666;">
                         Subscribe for €9.99/month to get 2 image searches per month
                     </p>
-                    <button onclick="createPaymentSession()" style="
+                    <button id="subscribeBtn" style="
                         background: #28a745; 
                         color: white; 
                         border: none; 
@@ -579,6 +579,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 </div>
             `;
             errorMessage.style.display = 'block';
+            
+            // Add event listener to the subscribe button
+            setTimeout(() => {
+                const subscribeBtn = document.getElementById('subscribeBtn');
+                if (subscribeBtn) {
+                    subscribeBtn.addEventListener('click', createPaymentSession);
+                }
+            }, 100);
         }
     }
     
