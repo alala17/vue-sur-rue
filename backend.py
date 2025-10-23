@@ -31,11 +31,16 @@ from auth import initialize_firebase, require_approved_user, require_admin, get_
 from user_manager import user_manager, UserStatus, UserRole
 from admin_auth import authenticate_admin, verify_admin_token
 from functools import wraps
+import stripe
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("advanced_image_search")
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+
+# Stripe configuration
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
 PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "paris")
 AVAILABLE_NAMESPACES = [f"750{i:02d}" for i in range(1, 21)]
 
@@ -607,6 +612,20 @@ def serve_approve():
 @require_approved_user
 def search():
     try:
+        # Get current user
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 400
+        
+        # Check usage limits
+        usage_check = user_manager.check_usage_limits(current_user.email)
+        if not usage_check["can_search"]:
+            return jsonify({
+                "error": "Usage limit reached",
+                "reason": usage_check["reason"],
+                "message": usage_check["message"]
+            }), 403
+        
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
@@ -656,6 +675,9 @@ def search():
                 "street_view_src": result.street_view_src
             })
         
+        # Increment usage count after successful search
+        user_manager.increment_usage(current_user.email)
+        
         return jsonify({
             "success": True,
             "results": results_data,
@@ -671,6 +693,117 @@ def search():
 @require_approved_user
 def get_namespaces():
     return jsonify({"namespaces": AVAILABLE_NAMESPACES})
+
+# Stripe payment endpoints
+@app.route('/api/payment/create-checkout-session', methods=['POST'])
+@require_approved_user
+def create_checkout_session():
+    """Create Stripe checkout session for subscription"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 400
+        
+        # Create or get Stripe customer
+        if not current_user.stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=current_user.email,
+                metadata={'user_email': current_user.email}
+            )
+            user_manager.set_stripe_customer(current_user.email, customer.id)
+            current_user.stripe_customer_id = customer.id
+        
+        # Create checkout session
+        checkout_session = stripe.checkout.Session.create(
+            customer=current_user.stripe_customer_id,
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'eur',
+                    'product_data': {
+                        'name': 'Vue Sur Rue - Monthly Subscription',
+                        'description': '2 image searches per month',
+                    },
+                    'unit_amount': 999,  # €9.99 in cents
+                    'recurring': {
+                        'interval': 'month',
+                    },
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=request.url_root + '?payment=success',
+            cancel_url=request.url_root + '?payment=cancelled',
+            metadata={'user_email': current_user.email}
+        )
+        
+        return jsonify({
+            'checkout_url': checkout_session.url,
+            'session_id': checkout_session.id
+        })
+        
+    except Exception as e:
+        logger.exception(f"Stripe checkout error: {e}")
+        return jsonify({"error": f"Payment setup failed: {str(e)}"}), 500
+
+@app.route('/api/payment/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+    endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError:
+        return jsonify({"error": "Invalid payload"}), 400
+    except stripe.error.SignatureVerificationError:
+        return jsonify({"error": "Invalid signature"}), 400
+    
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        user_email = session['metadata']['user_email']
+        user_manager.set_subscription_status(user_email, 'active')
+        logger.info(f"Subscription activated for {user_email}")
+    
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        customer_id = subscription['customer']
+        # Find user by customer ID and deactivate subscription
+        for user in user_manager.get_all_users():
+            if user.stripe_customer_id == customer_id:
+                user_manager.set_subscription_status(user.email, 'canceled')
+                logger.info(f"Subscription canceled for {user.email}")
+                break
+    
+    return jsonify({"status": "success"})
+
+@app.route('/api/usage/check', methods=['GET'])
+@require_approved_user
+def check_usage():
+    """Check current usage status"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 400
+        
+        usage_check = user_manager.check_usage_limits(current_user.email)
+        
+        return jsonify({
+            "can_search": usage_check["can_search"],
+            "reason": usage_check.get("reason"),
+            "message": usage_check.get("message"),
+            "free_usage_count": current_user.free_usage_count,
+            "paid_usage_count": current_user.paid_usage_count,
+            "subscription_status": current_user.subscription_status
+        })
+        
+    except Exception as e:
+        logger.exception(f"Usage check error: {e}")
+        return jsonify({"error": f"Usage check failed: {str(e)}"}), 500
 
 # Admin password authentication endpoint
 @app.route('/api/admin/login', methods=['POST'])

@@ -33,6 +33,12 @@ class User:
     updated_at: str
     invited_by: Optional[str] = None
     last_login: Optional[str] = None
+    # Usage tracking
+    free_usage_count: int = 0
+    paid_usage_count: int = 0
+    last_usage_reset: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    stripe_customer_id: Optional[str] = None
+    subscription_status: str = "none"  # none, active, canceled
 
 class UserManager:
     def __init__(self, data_file: str = "users.json"):
@@ -56,7 +62,12 @@ class UserManager:
                             created_at=user_data['created_at'],
                             updated_at=user_data['updated_at'],
                             invited_by=user_data.get('invited_by'),
-                            last_login=user_data.get('last_login')
+                            last_login=user_data.get('last_login'),
+                            free_usage_count=user_data.get('free_usage_count', 0),
+                            paid_usage_count=user_data.get('paid_usage_count', 0),
+                            last_usage_reset=user_data.get('last_usage_reset', datetime.utcnow().isoformat()),
+                            stripe_customer_id=user_data.get('stripe_customer_id'),
+                            subscription_status=user_data.get('subscription_status', 'none')
                         )
                 logger.info(f"Loaded {len(self.users)} users from {self.data_file}")
             else:
@@ -211,6 +222,86 @@ class UserManager:
             logger.info(f"Deleted user: {email}")
             return True
         return False
+    
+    def check_usage_limits(self, email: str) -> dict:
+        """Check if user can make another search"""
+        user = self.get_user(email)
+        if not user:
+            return {"can_search": False, "reason": "User not found"}
+        
+        # Check if monthly reset is needed
+        self._check_monthly_reset(user)
+        
+        # Check usage limits
+        if user.free_usage_count >= 1 and user.subscription_status != "active":
+            return {
+                "can_search": False, 
+                "reason": "free_limit_reached",
+                "message": "You've used your free search. Please subscribe to continue."
+            }
+        
+        if user.subscription_status == "active" and user.paid_usage_count >= 2:
+            return {
+                "can_search": False,
+                "reason": "monthly_limit_reached", 
+                "message": "You've reached your monthly limit of 2 searches. Reset next month."
+            }
+        
+        return {"can_search": True, "reason": "allowed"}
+    
+    def increment_usage(self, email: str) -> bool:
+        """Increment usage count for a user"""
+        user = self.get_user(email)
+        if not user:
+            return False
+        
+        # Check if monthly reset is needed
+        self._check_monthly_reset(user)
+        
+        if user.free_usage_count < 1:
+            user.free_usage_count += 1
+        elif user.subscription_status == "active" and user.paid_usage_count < 2:
+            user.paid_usage_count += 1
+        else:
+            return False
+        
+        user.updated_at = datetime.utcnow().isoformat()
+        self.save_users()
+        return True
+    
+    def _check_monthly_reset(self, user: User):
+        """Check if monthly reset is needed and reset if so"""
+        last_reset = datetime.fromisoformat(user.last_usage_reset)
+        now = datetime.utcnow()
+        
+        # Reset if it's been more than 30 days
+        if (now - last_reset).days >= 30:
+            user.paid_usage_count = 0
+            user.last_usage_reset = now.isoformat()
+            user.updated_at = now.isoformat()
+            self.save_users()
+    
+    def set_stripe_customer(self, email: str, customer_id: str) -> bool:
+        """Set Stripe customer ID for a user"""
+        user = self.get_user(email)
+        if not user:
+            return False
+        
+        user.stripe_customer_id = customer_id
+        user.updated_at = datetime.utcnow().isoformat()
+        self.save_users()
+        return True
+    
+    def set_subscription_status(self, email: str, status: str) -> bool:
+        """Set subscription status for a user"""
+        user = self.get_user(email)
+        if not user:
+            return False
+        
+        user.subscription_status = status
+        user.updated_at = datetime.utcnow().isoformat()
+        self.save_users()
+        return True
 
 # Global user manager instance
 user_manager = UserManager()

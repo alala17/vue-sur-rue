@@ -11,3 +11,4 @@ firebase-admin
 pyjwt
 cryptography
 PyJWT
+stripe
