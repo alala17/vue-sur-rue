@@ -263,22 +263,34 @@
                 authToken = await user.getIdToken();
                 
                 // Verify with backend
-                const response = await fetch('/api/auth/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`,
-                        'Content-Type': 'application/json'
+                try {
+                    const response = await fetch('/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.authenticated && data.user.role === 'admin') {
+                        showAdminPanel();
+                        loadUsers();
+                    } else if (data.authenticated && data.user.status === 'approved') {
+                        showMessage('Access denied. Admin privileges required. Your account is approved but you need admin role.', 'error');
+                        showAuthSection();
+                    } else if (data.authenticated) {
+                        showMessage('Access denied. Your account is not approved yet.', 'error');
+                        showAuthSection();
+                    } else {
+                        showMessage('Authentication failed. Please sign in again.', 'error');
+                        showAuthSection();
                     }
-                });
-                
-                const data = await response.json();
-                
-                if (data.authenticated && data.user.role === 'admin') {
-                    showAdminPanel();
-                    loadUsers();
-                } else {
-                    showMessage('Access denied. Admin privileges required.', 'error');
-                    signOut();
+                } catch (error) {
+                    console.error('Auth verification failed:', error);
+                    showMessage('Failed to verify authentication. Please sign in again.', 'error');
+                    showAuthSection();
                 }
             } else {
                 showAuthSection();
@@ -327,6 +339,25 @@
             }
         }
         
+        // Add a manual sign-in button for already approved users
+        function addManualSignInOption() {
+            const authSection = document.getElementById('authSection');
+            const manualSignInDiv = document.createElement('div');
+            manualSignInDiv.style.marginTop = '20px';
+            manualSignInDiv.innerHTML = `
+                <p>Already approved? Try signing in again:</p>
+                <button id="manualSignInBtn" class="btn btn-primary">Send New Sign-In Link</button>
+            `;
+            authSection.appendChild(manualSignInDiv);
+            
+            document.getElementById('manualSignInBtn').addEventListener('click', () => {
+                const email = prompt('Enter your email address:');
+                if (email) {
+                    sendSignInLink(email);
+                }
+            });
+        }
+        
         // Sign out
         function signOut() {
             auth.signOut();
@@ -337,6 +368,7 @@
         function showAuthSection() {
             authSection.classList.remove('hidden');
             adminPanel.classList.add('hidden');
+            addManualSignInOption();
         }
         
         function showAdminPanel() {

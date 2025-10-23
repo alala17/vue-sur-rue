@@ -774,6 +774,26 @@ def delete_user(email):
 def health():
     return jsonify({"status": "ok"})
 
+# Debug endpoint to check user status
+@app.route('/api/debug/user/<email>')
+def debug_user_status(email):
+    """Debug endpoint to check user status"""
+    try:
+        user = user_manager.get_user(email)
+        if user:
+            return jsonify({
+                "email": user.email,
+                "status": user.status.value,
+                "role": user.role.value,
+                "created_at": user.created_at,
+                "updated_at": user.updated_at,
+                "last_login": user.last_login
+            })
+        else:
+            return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Temporary endpoint to approve first admin user
 @app.route('/api/approve-first-admin', methods=['POST'])
 def approve_first_admin():
