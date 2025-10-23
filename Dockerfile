@@ -18,6 +18,7 @@ COPY backend.py .
 COPY frontend.html .
 COPY admin.html .
 COPY approve.html .
+COPY dev_auth.html .
 COPY auth.py .
 COPY user_manager.py .
 

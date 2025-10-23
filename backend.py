@@ -552,6 +552,9 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend-backend communication
 app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB max file size
 
+# Development mode flag
+DEV_MODE = os.getenv('DEV_MODE', 'false').lower() == 'true'
+
 def _decode_data_url(data_url: str) -> Optional[bytes]:
     if not data_url:
         return None
@@ -575,6 +578,11 @@ def serve_admin():
 @app.route('/approve')
 def serve_approve():
     return send_from_directory('.', 'approve.html')
+
+# Serve the dev auth page
+@app.route('/dev-auth')
+def serve_dev_auth():
+    return send_from_directory('.', 'dev_auth.html')
 
 # API endpoint for image search
 @app.route('/api/search', methods=['POST'])
@@ -832,6 +840,56 @@ def approve_first_admin():
     except Exception as e:
         logger.exception(f"Approve first admin error: {e}")
         return jsonify({"error": f"Failed to approve user: {str(e)}"}), 500
+
+# Development authentication bypass (when Firebase quota is exceeded)
+@app.route('/api/dev-auth', methods=['POST'])
+def dev_auth():
+    """Development authentication bypass for when Firebase quota is exceeded"""
+    if not DEV_MODE:
+        return jsonify({"error": "Development mode not enabled"}), 403
+    
+    try:
+        data = request.get_json()
+        if not data or 'email' not in data:
+            return jsonify({"error": "Email is required"}), 400
+        
+        email = data['email']
+        
+        # Get or create user
+        user = user_manager.get_user(email)
+        if not user:
+            user = user_manager.create_user(
+                email=email,
+                firebase_uid=f"dev-{email.replace('@', '-').replace('.', '-')}"
+            )
+        
+        # Create a fake token for development
+        import base64
+        import json
+        from datetime import datetime, timedelta
+        
+        fake_token_data = {
+            'email': email,
+            'uid': user.firebase_uid,
+            'iat': int(datetime.utcnow().timestamp()),
+            'exp': int((datetime.utcnow() + timedelta(hours=1)).timestamp())
+        }
+        
+        fake_token = base64.b64encode(json.dumps(fake_token_data).encode()).decode()
+        
+        return jsonify({
+            'authenticated': True,
+            'token': fake_token,
+            'user': {
+                'email': user.email,
+                'status': user.status.value,
+                'role': user.role.value
+            }
+        })
+        
+    except Exception as e:
+        logger.exception(f"Dev auth error: {e}")
+        return jsonify({"error": f"Failed to authenticate: {str(e)}"}), 500
 
 @app.route('/stats')
 def stats():
