@@ -13,7 +13,7 @@ import jwt
 
 # Admin credentials
 ADMIN_EMAIL = "alexandre.airvault@gmail.com"
-ADMIN_PASSWORD = "admin123"  # Change this to a secure password
+ADMIN_PASSWORD = "il fait beau aujourd'hui"  # Change this to a secure password
 
 # JWT secret key (in production, use a secure random key)
 JWT_SECRET = os.getenv('JWT_SECRET', 'your-secret-key-change-this')
