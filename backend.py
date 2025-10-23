@@ -618,7 +618,7 @@ def search():
             return jsonify({"error": "User not found"}), 400
         
         # Check usage limits
-        usage_check = user_manager.check_usage_limits(current_user.email)
+        usage_check = user_manager.check_usage_limits(current_user['email'])
         if not usage_check["can_search"]:
             return jsonify({
                 "error": "Usage limit reached",
@@ -676,7 +676,7 @@ def search():
             })
         
         # Increment usage count after successful search
-        user_manager.increment_usage(current_user.email)
+        user_manager.increment_usage(current_user['email'])
         
         return jsonify({
             "success": True,
@@ -705,17 +705,17 @@ def create_checkout_session():
             return jsonify({"error": "User not found"}), 400
         
         # Create or get Stripe customer
-        if not current_user.stripe_customer_id:
+        user = user_manager.get_user(current_user['email'])
+        if not user or not user.stripe_customer_id:
             customer = stripe.Customer.create(
-                email=current_user.email,
-                metadata={'user_email': current_user.email}
+                email=current_user['email'],
+                metadata={'user_email': current_user['email']}
             )
-            user_manager.set_stripe_customer(current_user.email, customer.id)
-            current_user.stripe_customer_id = customer.id
+            user_manager.set_stripe_customer(current_user['email'], customer.id)
         
         # Create checkout session
         checkout_session = stripe.checkout.Session.create(
-            customer=current_user.stripe_customer_id,
+            customer=user.stripe_customer_id,
             payment_method_types=['card'],
             line_items=[{
                 'price_data': {
@@ -734,7 +734,7 @@ def create_checkout_session():
             mode='subscription',
             success_url=request.url_root + '?payment=success',
             cancel_url=request.url_root + '?payment=cancelled',
-            metadata={'user_email': current_user.email}
+            metadata={'user_email': current_user['email']}
         )
         
         return jsonify({
@@ -790,15 +790,18 @@ def check_usage():
         if not current_user:
             return jsonify({"error": "User not found"}), 400
         
-        usage_check = user_manager.check_usage_limits(current_user.email)
+        usage_check = user_manager.check_usage_limits(current_user['email'])
+        
+        # Get user object for usage details
+        user = user_manager.get_user(current_user['email'])
         
         return jsonify({
             "can_search": usage_check["can_search"],
             "reason": usage_check.get("reason"),
             "message": usage_check.get("message"),
-            "free_usage_count": current_user.free_usage_count,
-            "paid_usage_count": current_user.paid_usage_count,
-            "subscription_status": current_user.subscription_status
+            "free_usage_count": user.free_usage_count if user else 0,
+            "paid_usage_count": user.paid_usage_count if user else 0,
+            "subscription_status": user.subscription_status if user else "none"
         })
         
     except Exception as e:
