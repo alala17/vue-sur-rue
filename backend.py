@@ -1253,7 +1253,7 @@ def health():
 
 # Debug endpoint to check user status
 @app.route('/api/debug/user/<email>')
-def debug_user_status(email):
+def debug_user_by_email(email):
     """Debug endpoint to check user status"""
     try:
         user = user_manager.get_user(email)
