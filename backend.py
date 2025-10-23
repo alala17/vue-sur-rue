@@ -700,20 +700,32 @@ def get_namespaces():
 def create_checkout_session():
     """Create Stripe checkout session for subscription"""
     try:
+        logger.info("Creating Stripe checkout session...")
         current_user = get_current_user()
         if not current_user:
+            logger.error("No current user found")
             return jsonify({"error": "User not found"}), 400
+        
+        logger.info(f"Creating checkout for user: {current_user['email']}")
+        
+        # Check Stripe configuration
+        if not stripe.api_key:
+            logger.error("Stripe API key not configured")
+            return jsonify({"error": "Payment system not configured"}), 500
         
         # Create or get Stripe customer
         user = user_manager.get_user(current_user['email'])
         if not user or not user.stripe_customer_id:
+            logger.info("Creating new Stripe customer...")
             customer = stripe.Customer.create(
                 email=current_user['email'],
                 metadata={'user_email': current_user['email']}
             )
             user_manager.set_stripe_customer(current_user['email'], customer.id)
+            logger.info(f"Created Stripe customer: {customer.id}")
         
         # Create checkout session
+        logger.info("Creating Stripe checkout session...")
         checkout_session = stripe.checkout.Session.create(
             customer=user.stripe_customer_id,
             payment_method_types=['card'],
@@ -736,6 +748,7 @@ def create_checkout_session():
             cancel_url=request.url_root + '?payment=cancelled',
             metadata={'user_email': current_user['email']}
         )
+        logger.info(f"Created checkout session: {checkout_session.id}")
         
         return jsonify({
             'checkout_url': checkout_session.url,

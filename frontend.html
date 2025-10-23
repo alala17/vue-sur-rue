@@ -519,6 +519,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     }
     
     async function createPaymentSession() {
+        console.log('[PAYMENT] Creating payment session...');
+        console.log('[PAYMENT] Auth token available:', !!authToken);
+        
         try {
             const response = await fetch('/api/payment/create-checkout-session', {
                 method: 'POST',
@@ -528,15 +531,20 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 }
             });
             
+            console.log('[PAYMENT] Response status:', response.status);
             const data = await response.json();
+            console.log('[PAYMENT] Response data:', data);
             
             if (response.ok) {
+                console.log('[PAYMENT] Redirecting to:', data.checkout_url);
                 // Redirect to Stripe checkout
                 window.location.href = data.checkout_url;
             } else {
+                console.error('[PAYMENT] Error response:', data);
                 alert('Failed to create payment session: ' + data.error);
             }
         } catch (error) {
+            console.error('[PAYMENT] Network error:', error);
             alert('Payment error: ' + error.message);
         }
     }
