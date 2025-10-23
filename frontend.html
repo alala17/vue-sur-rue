@@ -368,14 +368,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     const data = await response.json();
                     
                     if (data.authenticated) {
-                        if (data.user.status === 'approved') {
-                            console.log('[AUTH] User is approved, showing authenticated state');
-                            showAuthenticatedState(data.user);
-                            loadNamespaces();
-                        } else {
-                            console.log('[AUTH] User is not approved, status:', data.user.status);
-                            showPendingState(data.user);
-                        }
+                        console.log('[AUTH] User is authenticated, showing authenticated state');
+                        showAuthenticatedState(data.user);
+                        loadNamespaces();
                     } else {
                         console.log('[AUTH] User not authenticated by backend');
                         showUnauthenticatedState();
@@ -393,7 +388,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     function showAuthenticatedState(user) {
         authStatus.style.display = 'block';
         authStatus.style.background = '#d1fae5';
-        authText.textContent = `✅ Welcome, ${user.email}! (${user.role}) - You can now use the app`;
+        authText.textContent = `✅ Welcome, ${user.email}! Ready to search`;
         signInBtn.textContent = 'Sign Out';
         signInBtn.onclick = signOut;
         
@@ -427,18 +422,17 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     }
     
     function showUnauthenticatedState() {
-        authStatus.style.display = 'block';
-        authStatus.style.background = '#fff3cd';
+        authStatus.style.display = 'none';  // Hide auth status initially
         authText.textContent = 'Please sign in to continue';
         signInBtn.textContent = 'Sign In';
         signInBtn.onclick = signIn;
         
         // Update connection status
-        if (statusText) statusText.textContent = '⏳ Please sign in to access the app';
+        if (statusText) statusText.textContent = '✅ Ready to search - Sign in when you click "Rechercher"';
         
-        // Disable the form
-        form.style.opacity = '0.5';
-        form.style.pointerEvents = 'none';
+        // Enable the form - users can upload images without signing in
+        form.style.opacity = '1';
+        form.style.pointerEvents = 'auto';
     }
     
     function showApprovedButNotSignedInState() {
@@ -478,20 +472,13 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             
             const data = await response.json();
             
-            if (response.ok) {
-                if (data.exists && data.status === 'approved') {
+                if (response.ok) {
+                    // All users are auto-approved, so we can send sign-in link to anyone
                     await sendSignInLink(email);
                     document.getElementById('signInForm').style.display = 'none';
-                } else if (data.exists && data.status === 'pending') {
-                    alert('Your account is pending approval. Please contact an administrator.');
-                } else if (data.exists && data.status === 'revoked') {
-                    alert('Your account has been revoked. Please contact an administrator.');
                 } else {
-                    alert('Account not found. Please contact an administrator to create an account.');
+                    alert('Failed to check account status: ' + data.error);
                 }
-            } else {
-                alert('Failed to check account status: ' + data.error);
-            }
         } catch (error) {
             alert('Network error: ' + error.message);
         }
@@ -945,6 +932,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     imageBase64Data = canvas.toDataURL('image/jpeg', 0.8);
                 } else {
                     showError("Veuillez recadrer l'image avant de rechercher.");
+                    return;
+                }
+                
+                // Check if user is authenticated before searching
+                if (!authToken) {
+                    // Show sign-in form
+                    document.getElementById('signInForm').style.display = 'block';
+                    showError('Please sign in to perform a search.');
                     return;
                 }
                 

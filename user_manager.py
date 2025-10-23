@@ -197,9 +197,15 @@ class UserManager:
         return False
     
     def is_user_approved(self, email: str) -> bool:
-        """Check if user is approved"""
+        """Check if user is approved - auto-approve all users"""
         user = self.get_user(email)
-        return user is not None and user.status == UserStatus.APPROVED
+        if not user:
+            # Create user if they don't exist and auto-approve them
+            user = self.create_user(email=email, firebase_uid=f"auto-{email.replace('@', '-').replace('.', '-')}")
+            user.status = UserStatus.APPROVED
+            self.save_users()
+            logger.info(f"Auto-created and approved user: {email}")
+        return True  # Always approve users
     
     def is_user_admin(self, email: str) -> bool:
         """Check if user is admin"""
