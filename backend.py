@@ -623,9 +623,23 @@ def search():
         # Automatically check and sync subscription status before checking usage limits
         try:
             user = user_manager.get_user(current_user['email'])
-            if user and user.stripe_customer_id:
+            if user:
                 logger.info(f"Auto-syncing subscription for user: {current_user['email']}")
-                sync_subscription_status(user)
+                # Force sync from Stripe if user has customer ID, otherwise try to find/create customer
+                if user.stripe_customer_id:
+                    sync_subscription_status(user)
+                else:
+                    # Try to find existing Stripe customer by email
+                    try:
+                        customers = stripe.Customer.list(email=current_user['email'], limit=1)
+                        if customers.data:
+                            customer = customers.data[0]
+                            logger.info(f"Found existing Stripe customer: {customer.id}")
+                            user_manager.set_stripe_customer(current_user['email'], customer.id)
+                            user.stripe_customer_id = customer.id
+                            sync_subscription_status(user)
+                    except Exception as e:
+                        logger.warning(f"Failed to find/create Stripe customer: {e}")
         except Exception as e:
             logger.warning(f"Failed to auto-sync subscription: {e}")
         

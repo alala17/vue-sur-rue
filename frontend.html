@@ -449,6 +449,7 @@ select, .btn{
         <br>
         <button id="checkSubscriptionBtn" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
         <button id="debugStatusBtn" class="btn btn-primary" style="background: #6c757d; border-color: #6c757d; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Debug Status</button>
+        <button id="activateSubscriptionBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Activer Abonnement</button>
     </div>
     <button id="signOutBtn" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
@@ -1228,6 +1229,39 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
     }
     
+    async function activateSubscription() {
+        console.log('[ACTIVATE] Manually activating subscription...');
+        try {
+            const response = await fetch('/api/payment/manual-activate', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            console.log('[ACTIVATE] Activation response:', data);
+            
+            if (response.ok) {
+                if (data.status === 'success') {
+                    alert(`✅ Abonnement activé avec succès !\n\n${data.message}\n\nVous pouvez maintenant utiliser vos 2 recherches payantes.`);
+                } else {
+                    alert(`ℹ️ ${data.message}`);
+                }
+                
+                // Refresh usage display
+                await checkUsageStatus();
+            } else {
+                alert('Erreur lors de l\'activation: ' + data.error);
+            }
+            
+        } catch (error) {
+            console.error('[ACTIVATE] Error:', error);
+            alert('Erreur lors de l\'activation: ' + error.message);
+        }
+    }
+    
     async function sendSignInLink(email) {
         try {
             const actionCodeSettings = {
@@ -1483,6 +1517,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         if (debugStatusBtn) {
             debugStatusBtn.addEventListener('click', debugUserStatus);
+        }
+        
+        // Add event listener for activation button
+        const activateSubscriptionBtn = document.getElementById('activateSubscriptionBtn');
+        console.log('[INIT] activateSubscriptionBtn found:', !!activateSubscriptionBtn);
+        
+        if (activateSubscriptionBtn) {
+            activateSubscriptionBtn.addEventListener('click', activateSubscription);
         }
         
         // Add event listener for sign out button
