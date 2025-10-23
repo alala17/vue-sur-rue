@@ -71,35 +71,7 @@ def verify_firebase_token(token: str) -> Optional[Dict[str, Any]]:
         return None
 
 def get_user_from_token(token: str) -> Optional[Dict[str, Any]]:
-    """Get user information from Firebase token or development token"""
-    
-    # Check if this is a development token (base64 encoded, much longer than Firebase tokens)
-    if len(token) > 1000:  # Dev tokens are base64 encoded, much longer
-        import base64
-        import json
-        from datetime import datetime
-        
-        try:
-            # Decode the fake token
-            decoded_data = json.loads(base64.b64decode(token).decode())
-            
-            # Check if token is expired
-            if datetime.utcnow().timestamp() > decoded_data.get('exp', 0):
-                logger.warning("Development token expired")
-                return None
-            
-            return {
-                'uid': decoded_data.get('uid'),
-                'email': decoded_data.get('email'),
-                'email_verified': True,  # Assume verified in dev mode
-                'name': decoded_data.get('name'),
-                'picture': decoded_data.get('picture')
-            }
-        except Exception as e:
-            logger.warning(f"Invalid development token: {e}")
-            return None
-    
-    # Regular Firebase token verification
+    """Get user information from Firebase token"""
     decoded_token = verify_firebase_token(token)
     if not decoded_token:
         return None

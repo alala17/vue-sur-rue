@@ -10,3 +10,4 @@ torchvision
 firebase-admin
 pyjwt
 cryptography
+PyJWT

@@ -29,6 +29,8 @@ except ImportError:
 # Import authentication modules
 from auth import initialize_firebase, require_approved_user, require_admin, get_current_user
 from user_manager import user_manager, UserStatus, UserRole
+from admin_auth import authenticate_admin, verify_admin_token
+from functools import wraps
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("advanced_image_search")
@@ -547,13 +549,29 @@ firebase_initialized = initialize_firebase()
 if not firebase_initialized:
     logger.warning("Firebase Auth not initialized - authentication will be disabled")
 
+# Admin token decorator
+def require_admin_token(f):
+    """Decorator to require admin token authentication"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'Authorization token is missing or invalid'}), 401
+        
+        token = auth_header[7:]
+        payload = verify_admin_token(token)
+        
+        if not payload:
+            return jsonify({'error': 'Invalid or expired admin token'}), 401
+        
+        request.admin_user = payload
+        return f(*args, **kwargs)
+    return decorated_function
+
 # Flask app setup
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend-backend communication
 app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB max file size
-
-# Development mode flag
-DEV_MODE = os.getenv('DEV_MODE', 'false').lower() == 'true'
 
 def _decode_data_url(data_url: str) -> Optional[bytes]:
     if not data_url:
@@ -574,15 +592,15 @@ def serve_frontend():
 def serve_admin():
     return send_from_directory('.', 'admin.html')
 
+# Serve the password-based admin panel
+@app.route('/admin-password')
+def serve_admin_password():
+    return send_from_directory('.', 'admin_password.html')
+
 # Serve the approval page
 @app.route('/approve')
 def serve_approve():
     return send_from_directory('.', 'approve.html')
-
-# Serve the dev auth page
-@app.route('/dev-auth')
-def serve_dev_auth():
-    return send_from_directory('.', 'dev_auth.html')
 
 # API endpoint for image search
 @app.route('/api/search', methods=['POST'])
@@ -654,6 +672,35 @@ def search():
 def get_namespaces():
     return jsonify({"namespaces": AVAILABLE_NAMESPACES})
 
+# Admin password authentication endpoint
+@app.route('/api/admin/login', methods=['POST'])
+def admin_login():
+    """Password-based admin login"""
+    try:
+        data = request.get_json()
+        if not data or 'email' not in data or 'password' not in data:
+            return jsonify({"error": "Email and password are required"}), 400
+        
+        email = data['email']
+        password = data['password']
+        
+        token = authenticate_admin(email, password)
+        if token:
+            return jsonify({
+                'success': True,
+                'token': token,
+                'user': {
+                    'email': email,
+                    'role': 'admin'
+                }
+            })
+        else:
+            return jsonify({"error": "Invalid credentials"}), 401
+            
+    except Exception as e:
+        logger.exception(f"Admin login error: {e}")
+        return jsonify({"error": f"Login failed: {str(e)}"}), 500
+
 # Authentication endpoints
 @app.route('/api/auth/verify', methods=['POST'])
 def verify_auth():
@@ -702,7 +749,7 @@ def verify_auth():
 
 # Admin endpoints
 @app.route('/api/admin/users', methods=['GET'])
-@require_admin
+@require_admin_token
 def get_all_users():
     """Get all users (admin only)"""
     try:
@@ -726,7 +773,7 @@ def get_all_users():
         return jsonify({"error": f"Failed to get users: {str(e)}"}), 500
 
 @app.route('/api/admin/users/<email>/status', methods=['PUT'])
-@require_admin
+@require_admin_token
 def update_user_status(email):
     """Update user status (admin only)"""
     try:
@@ -749,7 +796,7 @@ def update_user_status(email):
         return jsonify({"error": f"Failed to update user status: {str(e)}"}), 500
 
 @app.route('/api/admin/users/<email>/role', methods=['PUT'])
-@require_admin
+@require_admin_token
 def update_user_role(email):
     """Update user role (admin only)"""
     try:
@@ -772,7 +819,7 @@ def update_user_role(email):
         return jsonify({"error": f"Failed to update user role: {str(e)}"}), 500
 
 @app.route('/api/admin/users/<email>', methods=['DELETE'])
-@require_admin
+@require_admin_token
 def delete_user(email):
     """Delete a user (admin only)"""
     try:
@@ -840,56 +887,6 @@ def approve_first_admin():
     except Exception as e:
         logger.exception(f"Approve first admin error: {e}")
         return jsonify({"error": f"Failed to approve user: {str(e)}"}), 500
-
-# Development authentication bypass (when Firebase quota is exceeded)
-@app.route('/api/dev-auth', methods=['POST'])
-def dev_auth():
-    """Development authentication bypass for when Firebase quota is exceeded"""
-    if not DEV_MODE:
-        return jsonify({"error": "Development mode not enabled"}), 403
-    
-    try:
-        data = request.get_json()
-        if not data or 'email' not in data:
-            return jsonify({"error": "Email is required"}), 400
-        
-        email = data['email']
-        
-        # Get or create user
-        user = user_manager.get_user(email)
-        if not user:
-            user = user_manager.create_user(
-                email=email,
-                firebase_uid=f"dev-{email.replace('@', '-').replace('.', '-')}"
-            )
-        
-        # Create a fake token for development
-        import base64
-        import json
-        from datetime import datetime, timedelta
-        
-        fake_token_data = {
-            'email': email,
-            'uid': user.firebase_uid,
-            'iat': int(datetime.utcnow().timestamp()),
-            'exp': int((datetime.utcnow() + timedelta(hours=1)).timestamp())
-        }
-        
-        fake_token = base64.b64encode(json.dumps(fake_token_data).encode()).decode()
-        
-        return jsonify({
-            'authenticated': True,
-            'token': fake_token,
-            'user': {
-                'email': user.email,
-                'status': user.status.value,
-                'role': user.role.value
-            }
-        })
-        
-    except Exception as e:
-        logger.exception(f"Dev auth error: {e}")
-        return jsonify({"error": f"Failed to authenticate: {str(e)}"}), 500
 
 @app.route('/stats')
 def stats():
