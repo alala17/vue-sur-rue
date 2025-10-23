@@ -243,19 +243,22 @@ class UserManager:
         self._check_monthly_reset(user)
         
         # Check usage limits
-        if user.free_usage_count >= 1 and user.subscription_status != "active":
-            return {
-                "can_search": False, 
-                "reason": "free_limit_reached",
-                "message": "You've used your free search. Please subscribe to continue."
-            }
-        
-        if user.subscription_status == "active" and user.paid_usage_count >= 2:
-            return {
-                "can_search": False,
-                "reason": "monthly_limit_reached", 
-                "message": "You've reached your monthly limit of 2 searches. Reset next month."
-            }
+        if user.subscription_status == "active":
+            # User has active subscription - check paid usage limit
+            if user.paid_usage_count >= 2:
+                return {
+                    "can_search": False,
+                    "reason": "monthly_limit_reached", 
+                    "message": "You've reached your monthly limit of 2 searches. Reset next month."
+                }
+        else:
+            # User has no active subscription - check free usage limit
+            if user.free_usage_count >= 1:
+                return {
+                    "can_search": False, 
+                    "reason": "free_limit_reached",
+                    "message": "You've used your free search. Please subscribe to continue."
+                }
         
         return {"can_search": True, "reason": "allowed"}
     
@@ -268,12 +271,21 @@ class UserManager:
         # Check if monthly reset is needed
         self._check_monthly_reset(user)
         
-        if user.free_usage_count < 1:
-            user.free_usage_count += 1
-        elif user.subscription_status == "active" and user.paid_usage_count < 2:
-            user.paid_usage_count += 1
-        else:
+        # Check if user can make another search before incrementing
+        usage_check = self.check_usage_limits(email)
+        if not usage_check["can_search"]:
+            logger.warning(f"User {email} tried to increment usage but limit reached: {usage_check['reason']}")
             return False
+        
+        # Increment the appropriate counter
+        if user.subscription_status == "active":
+            # User has active subscription - increment paid usage
+            user.paid_usage_count += 1
+            logger.info(f"Incremented paid usage for {email}: {user.paid_usage_count}/2")
+        else:
+            # User has no active subscription - increment free usage
+            user.free_usage_count += 1
+            logger.info(f"Incremented free usage for {email}: {user.free_usage_count}/1")
         
         user.updated_at = datetime.utcnow().isoformat()
         self.save_users()

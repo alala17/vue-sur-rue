@@ -620,7 +620,16 @@ def search():
         
         logger.info(f"Search request from user: {current_user['email']}")
         
-        # Check usage limits
+        # Automatically check and sync subscription status before checking usage limits
+        try:
+            user = user_manager.get_user(current_user['email'])
+            if user and user.stripe_customer_id:
+                logger.info(f"Auto-syncing subscription for user: {current_user['email']}")
+                sync_subscription_status(user)
+        except Exception as e:
+            logger.warning(f"Failed to auto-sync subscription: {e}")
+        
+        # Check usage limits after syncing
         usage_check = user_manager.check_usage_limits(current_user['email'])
         logger.info(f"Usage check result: {usage_check}")
         if not usage_check["can_search"]:
@@ -828,6 +837,31 @@ def manual_activate_subscription():
     except Exception as e:
         logger.exception(f"Manual activation error: {e}")
         return jsonify({"error": f"Activation failed: {str(e)}"}), 500
+
+def sync_subscription_status(user):
+    """Helper function to sync subscription status from Stripe"""
+    try:
+        if not user.stripe_customer_id:
+            logger.info(f"No Stripe customer ID for user: {user.email}")
+            return
+        
+        logger.info(f"Syncing subscription for customer: {user.stripe_customer_id}")
+        
+        # Get customer's subscriptions from Stripe
+        subscriptions = stripe.Subscription.list(customer=user.stripe_customer_id, status='active')
+        
+        if subscriptions.data:
+            # User has active subscription
+            subscription = subscriptions.data[0]
+            logger.info(f"Found active subscription: {subscription.id}")
+            user_manager.set_subscription_status(user.email, 'active')
+        else:
+            # No active subscription found
+            logger.info(f"No active subscription found for customer: {user.stripe_customer_id}")
+            user_manager.set_subscription_status(user.email, 'none')
+            
+    except Exception as e:
+        logger.warning(f"Failed to sync subscription status: {e}")
 
 @app.route('/api/payment/check-stripe-subscription', methods=['POST'])
 @require_approved_user
