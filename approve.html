@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Approve First Admin - Vue sur Rue</title>
+    <style>
+        body {
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f7f6ff;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #7b5cff;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button {
+            background: #7b5cff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #6b46ff;
+        }
+        .message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔐 Approve First Admin</h1>
+        <p>Use this page to approve yourself as the first admin user.</p>
+        
+        <div class="form-group">
+            <label for="email">Your Email Address:</label>
+            <input type="email" id="email" placeholder="Enter your email address">
+        </div>
+        
+        <button onclick="approveUser()">Approve as Admin</button>
+        
+        <div id="message"></div>
+        
+        <div class="info" style="margin-top: 30px;">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Enter the email address you used to sign in</li>
+                <li>Click "Approve as Admin"</li>
+                <li>Go to <a href="/admin">/admin</a> to access the admin panel</li>
+                <li>You can then manage other users from there</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        async function approveUser() {
+            const email = document.getElementById('email').value.trim();
+            const messageDiv = document.getElementById('message');
+            
+            if (!email) {
+                showMessage('Please enter your email address', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/approve-first-admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage(`✅ Success! ${data.message}`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, 2000);
+                } else {
+                    showMessage(`❌ Error: ${data.error}`, 'error');
+                }
+                
+            } catch (error) {
+                showMessage(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

@@ -295,7 +295,8 @@
             signInWithEmailLink(auth, email, window.location.href)
                 .then(() => {
                     window.localStorage.removeItem('emailForSignIn');
-                    window.location.href = '/admin';
+                    // Stay on admin page, the auth state change will handle the rest
+                    console.log('Email link sign-in successful');
                 })
                 .catch((error) => {
                     showMessage('Sign-in failed: ' + error.message, 'error');

@@ -570,6 +570,11 @@ def serve_frontend():
 def serve_admin():
     return send_from_directory('.', 'admin.html')
 
+# Serve the approval page
+@app.route('/approve')
+def serve_approve():
+    return send_from_directory('.', 'approve.html')
+
 # API endpoint for image search
 @app.route('/api/search', methods=['POST'])
 @require_approved_user
@@ -768,6 +773,38 @@ def delete_user(email):
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"})
+
+# Temporary endpoint to approve first admin user
+@app.route('/api/approve-first-admin', methods=['POST'])
+def approve_first_admin():
+    """Temporary endpoint to approve the first admin user"""
+    try:
+        data = request.get_json()
+        if not data or 'email' not in data:
+            return jsonify({"error": "Email is required"}), 400
+        
+        email = data['email']
+        user = user_manager.get_user(email)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Approve user and make them admin
+        user_manager.update_user_status(email, UserStatus.APPROVED)
+        user_manager.update_user_role(email, UserRole.ADMIN)
+        
+        return jsonify({
+            "message": f"User {email} approved and promoted to admin",
+            "user": {
+                "email": email,
+                "status": "approved",
+                "role": "admin"
+            }
+        })
+        
+    except Exception as e:
+        logger.exception(f"Approve first admin error: {e}")
+        return jsonify({"error": f"Failed to approve user: {str(e)}"}), 500
 
 @app.route('/stats')
 def stats():

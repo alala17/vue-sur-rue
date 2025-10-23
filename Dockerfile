@@ -17,6 +17,7 @@ RUN python -m pip install --upgrade pip wheel setuptools \
 COPY backend.py .
 COPY frontend.html .
 COPY admin.html .
+COPY approve.html .
 COPY auth.py .
 COPY user_manager.py .
 
