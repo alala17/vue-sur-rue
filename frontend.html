@@ -161,6 +161,19 @@ select, .btn{
     <strong>Authentication:</strong> <span id="authText">Please sign in to continue</span>
     <button id="signInBtn" class="btn btn-primary" style="margin-left: 10px;">Sign In</button>
 </div>
+
+<!-- Sign-in form (hidden by default) -->
+<div id="signInForm" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef;">
+    <h3 style="margin-top: 0; color: #333; text-align: center;">Sign In to Access the App</h3>
+    <div style="margin-bottom: 15px;">
+        <label for="signInEmail" style="display: block; margin-bottom: 5px; font-weight: 500; color: #333;">Email Address:</label>
+        <input type="email" id="signInEmail" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;" placeholder="Enter your email address">
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button id="sendSignInBtn" style="flex: 1; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">Send Sign-In Link</button>
+        <button id="cancelSignInBtn" style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">Cancel</button>
+    </div>
+</div>
 <form id="searchForm" class="stack" novalidate>
 <!-- Step 1: Arrondissement -->
 <div>
@@ -378,8 +391,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         authStatus.style.display = 'block';
         authStatus.style.background = '#fef3c7';
         authText.textContent = `Account pending approval. Status: ${user.status}`;
-        signInBtn.textContent = 'Sign Out';
-        signInBtn.onclick = signOut;
+        signInBtn.textContent = 'Send New Sign-In Link';
+        signInBtn.onclick = () => sendSignInLink(user.email);
         
         // Disable the form
         form.style.opacity = '0.5';
@@ -398,21 +411,79 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         form.style.pointerEvents = 'none';
     }
     
+    function showApprovedButNotSignedInState() {
+        authStatus.style.display = 'block';
+        authStatus.style.background = '#d1fae5';
+        authText.textContent = 'Your account is approved! Please sign in to access the app.';
+        signInBtn.textContent = 'Sign In';
+        signInBtn.onclick = signIn;
+        
+        // Disable the form
+        form.style.opacity = '0.5';
+        form.style.pointerEvents = 'none';
+    }
+    
     async function signIn() {
-        const email = prompt('Enter your email address:');
-        if (email) {
-            try {
-                const actionCodeSettings = {
-                    url: window.location.origin,
-                    handleCodeInApp: true,
-                };
-                
-                await window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings);
-                window.localStorage.setItem('emailForSignIn', email);
-                alert('Sign-in link sent to your email! Check your inbox and click the link.');
-            } catch (error) {
-                alert('Failed to send sign-in link: ' + error.message);
+        // Show the sign-in form
+        document.getElementById('signInForm').style.display = 'block';
+        document.getElementById('signInEmail').focus();
+    }
+    
+    async function processSignIn() {
+        const email = document.getElementById('signInEmail').value.trim();
+        if (!email) {
+            alert('Please enter your email address.');
+            return;
+        }
+        
+        // Check if user is approved first
+        try {
+            const response = await fetch('/api/auth/check-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                if (data.exists && data.status === 'approved') {
+                    await sendSignInLink(email);
+                    document.getElementById('signInForm').style.display = 'none';
+                } else if (data.exists && data.status === 'pending') {
+                    alert('Your account is pending approval. Please contact an administrator.');
+                } else if (data.exists && data.status === 'revoked') {
+                    alert('Your account has been revoked. Please contact an administrator.');
+                } else {
+                    alert('Account not found. Please contact an administrator to create an account.');
+                }
+            } else {
+                alert('Failed to check account status: ' + data.error);
             }
+        } catch (error) {
+            alert('Network error: ' + error.message);
+        }
+    }
+    
+    function cancelSignIn() {
+        document.getElementById('signInForm').style.display = 'none';
+        document.getElementById('signInEmail').value = '';
+    }
+    
+    async function sendSignInLink(email) {
+        try {
+            const actionCodeSettings = {
+                url: window.location.origin,
+                handleCodeInApp: true,
+            };
+            
+            await window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings);
+            window.localStorage.setItem('emailForSignIn', email);
+            alert('Sign-in link sent to your email! Check your inbox and click the link.');
+        } catch (error) {
+            alert('Failed to send sign-in link: ' + error.message);
         }
     }
     
@@ -545,6 +616,17 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         // Handle email link sign-in first
         handleEmailLinkSignIn();
+        
+        // Add event listeners for sign-in form
+        document.getElementById('sendSignInBtn').addEventListener('click', processSignIn);
+        document.getElementById('cancelSignInBtn').addEventListener('click', cancelSignIn);
+        
+        // Allow Enter key to submit sign-in form
+        document.getElementById('signInEmail').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processSignIn();
+            }
+        });
         
         // Check authentication status
         setTimeout(() => {

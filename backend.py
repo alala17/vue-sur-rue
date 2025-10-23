@@ -701,6 +701,35 @@ def admin_login():
         logger.exception(f"Admin login error: {e}")
         return jsonify({"error": f"Login failed: {str(e)}"}), 500
 
+# Check user status without authentication
+@app.route('/api/auth/check-status', methods=['POST'])
+def check_user_status():
+    """Check if a user is approved without requiring authentication"""
+    try:
+        data = request.get_json()
+        if not data or 'email' not in data:
+            return jsonify({"error": "Email is required"}), 400
+        
+        email = data['email']
+        user = user_manager.get_user(email)
+        
+        if user:
+            return jsonify({
+                'exists': True,
+                'status': user.status.value,
+                'role': user.role.value
+            })
+        else:
+            return jsonify({
+                'exists': False,
+                'status': 'pending',
+                'role': 'user'
+            })
+            
+    except Exception as e:
+        logger.exception(f"Check user status error: {e}")
+        return jsonify({"error": f"Failed to check user status: {str(e)}"}), 500
+
 # Authentication endpoints
 @app.route('/api/auth/verify', methods=['POST'])
 def verify_auth():
