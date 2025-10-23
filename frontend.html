@@ -573,20 +573,65 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                         cursor: pointer; 
                         font-size: 16px; 
                         font-weight: 500;
+                        margin-right: 10px;
                     ">
                         Subscribe Now - €9.99/month
+                    </button>
+                    <button id="manualActivateBtn" style="
+                        background: #ffc107; 
+                        color: black; 
+                        border: none; 
+                        padding: 12px 24px; 
+                        border-radius: 6px; 
+                        cursor: pointer; 
+                        font-size: 16px; 
+                        font-weight: 500;
+                    ">
+                        Manual Activate (Test)
                     </button>
                 </div>
             `;
             errorMessage.style.display = 'block';
             
-            // Add event listener to the subscribe button
+            // Add event listeners to the buttons
             setTimeout(() => {
                 const subscribeBtn = document.getElementById('subscribeBtn');
                 if (subscribeBtn) {
                     subscribeBtn.addEventListener('click', createPaymentSession);
                 }
+                
+                const manualActivateBtn = document.getElementById('manualActivateBtn');
+                if (manualActivateBtn) {
+                    manualActivateBtn.addEventListener('click', manualActivateSubscription);
+                }
             }, 100);
+        }
+    }
+    
+    async function manualActivateSubscription() {
+        console.log('[MANUAL] Manually activating subscription...');
+        try {
+            const response = await fetch('/api/payment/manual-activate', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            console.log('[MANUAL] Response:', data);
+            
+            if (response.ok) {
+                alert('Subscription manually activated! You can now search again.');
+                // Refresh usage status
+                await checkUsageStatus();
+            } else {
+                alert('Failed to activate subscription: ' + data.error);
+            }
+        } catch (error) {
+            console.error('[MANUAL] Error:', error);
+            alert('Manual activation error: ' + error.message);
         }
     }
     

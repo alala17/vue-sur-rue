@@ -766,23 +766,30 @@ def create_checkout_session():
 @app.route('/api/payment/webhook', methods=['POST'])
 def stripe_webhook():
     """Handle Stripe webhook events"""
+    logger.info("Webhook received")
     payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     endpoint_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
+    
+    logger.info(f"Webhook secret configured: {bool(endpoint_secret)}")
     
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, endpoint_secret
         )
-    except ValueError:
+        logger.info(f"Webhook event type: {event['type']}")
+    except ValueError as e:
+        logger.error(f"Invalid payload: {e}")
         return jsonify({"error": "Invalid payload"}), 400
-    except stripe.error.SignatureVerificationError:
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid signature: {e}")
         return jsonify({"error": "Invalid signature"}), 400
     
     # Handle the event
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         user_email = session['metadata']['user_email']
+        logger.info(f"Processing checkout.session.completed for {user_email}")
         user_manager.set_subscription_status(user_email, 'active')
         logger.info(f"Subscription activated for {user_email}")
     
@@ -797,6 +804,30 @@ def stripe_webhook():
                 break
     
     return jsonify({"status": "success"})
+
+@app.route('/api/payment/manual-activate', methods=['POST'])
+@require_approved_user
+def manual_activate_subscription():
+    """Manually activate subscription for testing purposes"""
+    try:
+        current_user = get_current_user()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 400
+        
+        user_email = current_user['email']
+        logger.info(f"Manually activating subscription for {user_email}")
+        
+        user_manager.set_subscription_status(user_email, 'active')
+        
+        return jsonify({
+            "status": "success",
+            "message": "Subscription manually activated",
+            "user_email": user_email
+        })
+        
+    except Exception as e:
+        logger.exception(f"Manual activation error: {e}")
+        return jsonify({"error": f"Activation failed: {str(e)}"}), 500
 
 @app.route('/api/usage/check', methods=['GET'])
 @require_approved_user
