@@ -959,7 +959,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         try {
             const actionCodeSettings = {
-                url: window.location.origin + window.location.pathname,
+                url: 'https://vue-sur-rue-production.up.railway.app',
                 handleCodeInApp: true
             };
             
@@ -1096,6 +1096,20 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function handleEmailLinkSignIn() {
         console.log('[EMAIL_LINK] Handling email link sign-in...');
         console.log('[EMAIL_LINK] Current URL:', window.location.href);
+        
+        // Check if we're on Firebase's hosted auth page with resetPassword mode
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const oobCode = urlParams.get('oobCode');
+        
+        if (mode === 'resetPassword' && oobCode && window.location.hostname.includes('firebaseapp.com')) {
+            console.log('[EMAIL_LINK] Redirecting from Firebase hosted page to our app');
+            // Redirect to our app with the reset parameters
+            const newUrl = window.location.origin.replace('firebaseapp.com', 'railway.app') + 
+                          '?mode=resetPassword&oobCode=' + oobCode;
+            window.location.href = newUrl;
+            return;
+        }
         
         if (window.isSignInWithEmailLink(window.firebaseAuth, window.location.href)) {
             console.log('[EMAIL_LINK] Email link detected');
