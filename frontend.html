@@ -504,7 +504,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         signInWithEmailAndPassword,
         createUserWithEmailAndPassword,
         sendEmailVerification,
-        sendPasswordResetEmail
+        sendPasswordResetEmail,
+        updatePassword
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     
     // Firebase configuration
@@ -531,6 +532,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     window.sendSignInLinkToEmail = sendSignInLinkToEmail;
     window.isSignInWithEmailLink = isSignInWithEmailLink;
     window.signInWithEmailLink = signInWithEmailLink;
+    window.updatePassword = updatePassword;
 </script>
 <script>
 (function() {
@@ -826,8 +828,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 return;
             }
             
-            // Update the user's password
-            await user.updatePassword(password);
+            // Update the user's password using Firebase function
+            await window.updatePassword(user, password);
             
             // Send email verification
             await window.sendEmailVerification(user);
@@ -1557,7 +1559,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         // Set up periodic authentication check for pending users
         setInterval(() => {
-            if (currentUser && authStatus.style.display === 'block' && authText.textContent.includes('pending')) {
+            if (currentUser && authStatus && authStatus.style.display === 'block' && authText && authText.textContent.includes('pending')) {
                 console.log('[AUTH] Periodic check for pending user...');
                 checkAuthStatus();
             }
