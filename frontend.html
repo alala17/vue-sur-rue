@@ -954,12 +954,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
         
         try {
-            const actionCodeSettings = {
-                url: window.location.origin + '/',
-                handleCodeInApp: true
-            };
-            
-            await window.sendPasswordResetEmail(window.firebaseAuth, email, actionCodeSettings);
+            // Don't set actionCodeSettings to let it open in new tab
+            // Firebase will show its own reset page, but we'll intercept it
+            await window.sendPasswordResetEmail(window.firebaseAuth, email);
             showAuthMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte email.', 'success');
         } catch (error) {
             console.error('[RESET] Error:', error);
@@ -1097,6 +1094,19 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[EMAIL_LINK] localStorage emailForSignUp:', emailForSignUp);
             console.log('[EMAIL_LINK] URL email:', urlEmail);
             console.log('[EMAIL_LINK] URL mode:', mode);
+            
+            // Check if this is a password reset flow
+            if (mode === 'resetPassword') {
+                console.log('[EMAIL_LINK] Password reset flow detected');
+                // Show custom password reset modal
+                const resetEmail = urlEmail || email;
+                if (resetEmail) {
+                    document.getElementById('passwordResetModal').style.display = 'block';
+                    document.getElementById('authModal').style.display = 'none';
+                    document.getElementById('resetPasswordEmail').textContent = resetEmail;
+                    return;
+                }
+            }
             
             // Determine if this is a sign-up flow based on URL parameters
             const isSignUpFlow = mode === 'signup' || emailForSignUp;
