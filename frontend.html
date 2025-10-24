@@ -16,7 +16,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -392,7 +393,6 @@ select, .btn{
         </div>
         
         <div class="auth-tabs">
-            <button class="tab-button" id="signinTabBtn">Se connecter</button>
             <button class="tab-button active" id="signupTabBtn">S'inscrire</button>
         </div>
         
@@ -406,6 +406,7 @@ select, .btn{
             </form>
             <div class="auth-links">
                 <a href="#" id="forgotPasswordLink">Mot de passe oublié ?</a>
+                <p>Vous n'avez pas de compte ? <a href="#" id="switchToSignupLink">S'inscrire</a></p>
             </div>
         </div>
         
@@ -652,10 +653,13 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         // Add active class to selected tab and button
         if (tabName === 'signin') {
-            document.getElementById('signinTabBtn').classList.add('active');
+            // Hide the signup tab button when showing signin
+            document.getElementById('signupTabBtn').style.display = 'none';
             document.getElementById('signinTab').classList.add('active');
             document.getElementById('signinTab').style.display = 'block';
         } else if (tabName === 'signup') {
+            // Show the signup tab button when showing signup
+            document.getElementById('signupTabBtn').style.display = 'block';
             document.getElementById('signupTabBtn').classList.add('active');
             document.getElementById('signupTab').classList.add('active');
             document.getElementById('signupTab').style.display = 'block';
@@ -1563,6 +1567,15 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             resendEmailLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 showSignupForm();
+            });
+        }
+        
+        // Add event listener for switch to signup link
+        const switchToSignupLink = document.getElementById('switchToSignupLink');
+        if (switchToSignupLink) {
+            switchToSignupLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                switchTab('signup');
             });
         }
         
