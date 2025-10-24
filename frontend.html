@@ -427,6 +427,7 @@ select, .btn{
         <button id="checkSubscriptionBtn" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
         <button id="debugStatusBtn" class="btn btn-primary" style="background: #6c757d; border-color: #6c757d; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Debug Status</button>
         <button id="activateSubscriptionBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Activer Abonnement</button>
+        <button id="debugLocalStorageBtn" class="btn btn-primary" style="background: #fd7e14; border-color: #fd7e14; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Debug Storage</button>
     </div>
     <button id="signOutBtn" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
@@ -862,6 +863,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     
     async function handleEmailLinkSignIn() {
         console.log('[EMAIL_LINK] Handling email link sign-in...');
+        console.log('[EMAIL_LINK] Current URL:', window.location.href);
         
         if (window.isSignInWithEmailLink(window.firebaseAuth, window.location.href)) {
             console.log('[EMAIL_LINK] Email link detected');
@@ -869,9 +871,30 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             let email = window.localStorage.getItem('emailForSignIn');
             let emailForSignUp = window.localStorage.getItem('emailForSignUp');
             
+            // Check URL parameters for email (fallback)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlEmail = urlParams.get('email');
+            const mode = urlParams.get('mode');
+            
+            console.log('[EMAIL_LINK] localStorage emailForSignIn:', email);
+            console.log('[EMAIL_LINK] localStorage emailForSignUp:', emailForSignUp);
+            console.log('[EMAIL_LINK] URL email:', urlEmail);
+            console.log('[EMAIL_LINK] URL mode:', mode);
+            
+            // If no email in localStorage but we have URL parameters, use those
+            if (!email && !emailForSignUp && urlEmail) {
+                if (mode === 'signup') {
+                    emailForSignUp = urlEmail;
+                    console.log('[EMAIL_LINK] Using URL email for sign-up flow:', emailForSignUp);
+                } else {
+                    email = urlEmail;
+                    console.log('[EMAIL_LINK] Using URL email for sign-in flow:', email);
+                }
+            }
+            
             if (!email && !emailForSignUp) {
                 // User opened the link on a different device - this shouldn't happen in sign-up flow
-                console.log('[EMAIL_LINK] No email found in localStorage, this might be a sign-up flow');
+                console.log('[EMAIL_LINK] No email found in localStorage or URL, this might be a sign-up flow');
                 // Don't prompt for email, let the user go through the normal sign-up process
                 return;
             }
@@ -1232,6 +1255,29 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
     }
     
+    function debugLocalStorage() {
+        console.log('[DEBUG] Checking localStorage...');
+        
+        const emailForSignIn = window.localStorage.getItem('emailForSignIn');
+        const emailForSignUp = window.localStorage.getItem('emailForSignUp');
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlEmail = urlParams.get('email');
+        const mode = urlParams.get('mode');
+        
+        let message = `🔍 Debug LocalStorage:\n\n`;
+        message += `📧 emailForSignIn: ${emailForSignIn || 'null'}\n`;
+        message += `📧 emailForSignUp: ${emailForSignUp || 'null'}\n`;
+        message += `🌐 URL email: ${urlEmail || 'null'}\n`;
+        message += `🌐 URL mode: ${mode || 'null'}\n`;
+        message += `🌐 Current URL: ${window.location.href}\n\n`;
+        
+        message += `🔍 Firebase Auth State:\n`;
+        message += `• User: ${window.firebaseAuth?.currentUser?.email || 'null'}\n`;
+        message += `• Is email link: ${window.isSignInWithEmailLink ? window.isSignInWithEmailLink(window.firebaseAuth, window.location.href) : 'function not available'}\n`;
+        
+        alert(message);
+    }
+    
     async function sendSignInLink(email) {
         try {
             const actionCodeSettings = {
@@ -1483,6 +1529,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         if (activateSubscriptionBtn) {
             activateSubscriptionBtn.addEventListener('click', activateSubscription);
+        }
+        
+        // Add event listener for localStorage debug button
+        const debugLocalStorageBtn = document.getElementById('debugLocalStorageBtn');
+        console.log('[INIT] debugLocalStorageBtn found:', !!debugLocalStorageBtn);
+        
+        if (debugLocalStorageBtn) {
+            debugLocalStorageBtn.addEventListener('click', debugLocalStorage);
         }
         
         // Add event listener for sign out button
