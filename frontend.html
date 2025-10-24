@@ -25,6 +25,7 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .modal-content {
@@ -36,6 +37,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    margin: auto;
 }
 
 .modal-header {
@@ -393,7 +396,7 @@ select, .btn{
             <p>Connectez-vous pour rechercher des images similaires dans Paris</p>
         </div>
         
-        <div class="auth-tabs">
+        <div class="auth-tabs" style="display: none;">
             <button class="tab-button active" id="signupTabBtn">S'inscrire</button>
         </div>
         
