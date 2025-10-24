@@ -722,7 +722,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function loadNamespaces() {
         try {
             console.log('[API] Attempting to fetch namespaces...');
-            if (statusText) statusText.textContent = 'Loading arrondissements...';
+            if (statusText) statusText.textContent = 'Chargement des arrondissements...';
             
             const response = await fetch('/api/namespaces');
             console.log('[API] Response status:', response.status);
@@ -746,10 +746,10 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             });
             
             console.log('[API] Loaded namespaces:', availableNamespaces.length);
-            if (statusText) statusText.textContent = `✅ Ready to search - Loaded ${availableNamespaces.length} arrondissements`;
+            if (statusText) statusText.textContent = `✅ Prêt à rechercher - ${availableNamespaces.length} arrondissements chargés`;
         } catch (error) {
             console.error('[API] Failed to load namespaces:', error);
-            if (statusText) statusText.textContent = `❌ Connection failed: ${error.message}`;
+            if (statusText) statusText.textContent = `❌ Connexion échouée: ${error.message}`;
             showError(`Impossible de charger les arrondissements disponibles: ${error.message}`);
         }
     }
@@ -1272,15 +1272,15 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         if (statusText) {
             if (usageData.can_search) {
                 if (usageData.subscription_status === 'active') {
-                    statusText.textContent = `✅ Connected! ${15 - usageData.paid_usage_count} searches remaining this month`;
+                    statusText.textContent = `✅ Connecté ! ${15 - usageData.paid_usage_count} recherches restantes ce mois`;
                 } else {
-                    statusText.textContent = `✅ Connected! ${1 - usageData.free_usage_count} free search remaining`;
+                    statusText.textContent = `✅ Connecté ! ${1 - usageData.free_usage_count} recherche gratuite restante`;
                 }
             } else {
                 if (usageData.reason === 'free_limit_reached') {
-                    statusText.textContent = '💳 Free search used - Subscribe to continue';
+                    statusText.textContent = '💳 Recherche gratuite utilisée - Abonnez-vous pour continuer';
                 } else if (usageData.reason === 'monthly_limit_reached') {
-                    statusText.textContent = '⏳ Monthly limit reached - Reset next month';
+                    statusText.textContent = '⏳ Limite mensuelle atteinte - Réinitialisation le mois prochain';
                 }
             }
         }
