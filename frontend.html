@@ -155,6 +155,29 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     border: 1px solid #f5c6cb;
 }
 
+.confirmation-message {
+    text-align: center;
+    padding: 20px;
+}
+
+.confirmation-message p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.confirmation-message strong {
+    color: #007bff;
+}
+
+.confirmation-message a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.confirmation-message a:hover {
+    text-decoration: underline;
+}
+
 .auth-divider {
     text-align: center;
     margin: 20px 0;
@@ -369,11 +392,11 @@ select, .btn{
         </div>
         
         <div class="auth-tabs">
-            <button class="tab-button active" id="signinTabBtn">Se connecter</button>
-            <button class="tab-button" id="signupTabBtn">S'inscrire</button>
+            <button class="tab-button" id="signinTabBtn">Se connecter</button>
+            <button class="tab-button active" id="signupTabBtn">S'inscrire</button>
         </div>
         
-        <div id="signinTab" class="tab-content active">
+        <div id="signinTab" class="tab-content">
             <h3>Connexion</h3>
             <p>Connectez-vous avec votre email et mot de passe.</p>
             <form id="signInForm">
@@ -386,13 +409,24 @@ select, .btn{
             </div>
         </div>
         
-        <div id="signupTab" class="tab-content">
+        <div id="signupTab" class="tab-content active">
             <h3>Inscription</h3>
             <p>Créez votre compte en vérifiant d'abord votre email.</p>
             <form id="signUpForm">
                 <input type="email" id="signupEmail" placeholder="Votre adresse email" required>
-                <button type="submit">Vérifier mon email</button>
+                <button type="submit">S'inscrire</button>
             </form>
+            <div class="auth-links">
+                <p>Vous avez déjà un compte ? <a href="#" id="switchToSigninLink">Se connecter</a></p>
+            </div>
+        </div>
+        
+        <div id="signupConfirmationTab" class="tab-content" style="display: none;">
+            <h3>Vérifiez votre email</h3>
+            <div class="confirmation-message">
+                <p>Confirmez votre email en cliquant sur le lien envoyé à <strong id="confirmationEmail"></strong></p>
+                <p>Si vous n'avez rien reçu, vérifiez vos spams ou <a href="#" id="resendEmailLink">réinitialisez le processus</a>.</p>
+            </div>
         </div>
         
         <div id="authMessage" class="auth-message"></div>
@@ -611,15 +645,20 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         // Remove active class from all tabs and buttons
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+            content.style.display = 'none';
+        });
         
         // Add active class to selected tab and button
         if (tabName === 'signin') {
             document.getElementById('signinTabBtn').classList.add('active');
             document.getElementById('signinTab').classList.add('active');
+            document.getElementById('signinTab').style.display = 'block';
         } else if (tabName === 'signup') {
             document.getElementById('signupTabBtn').classList.add('active');
             document.getElementById('signupTab').classList.add('active');
+            document.getElementById('signupTab').style.display = 'block';
         }
         
         console.log('[TAB] Tab switched successfully');
@@ -761,7 +800,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             await window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings);
             window.localStorage.setItem('emailForSignUp', email);
             
-            showAuthMessage('Lien de vérification envoyé ! Vérifiez votre email et cliquez sur le lien pour continuer.', 'success');
+            // Show confirmation message instead of success message
+            showSignupConfirmation(email);
             
         } catch (error) {
             console.error('[SIGNUP] Error:', error);
@@ -948,6 +988,19 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         const messageDiv = document.getElementById('authMessage');
         messageDiv.innerHTML = message;
         messageDiv.className = `auth-message ${type}`;
+    }
+    
+    function showSignupConfirmation(email) {
+        // Hide signup form and show confirmation message
+        document.getElementById('signupTab').style.display = 'none';
+        document.getElementById('signupConfirmationTab').style.display = 'block';
+        document.getElementById('confirmationEmail').textContent = email;
+    }
+    
+    function showSignupForm() {
+        // Hide confirmation message and show signup form
+        document.getElementById('signupConfirmationTab').style.display = 'none';
+        document.getElementById('signupTab').style.display = 'block';
     }
     
     async function processSignIn() {
@@ -1492,6 +1545,24 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             forgotPasswordLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 resetPassword();
+            });
+        }
+        
+        // Add event listener for switch to signin link
+        const switchToSigninLink = document.getElementById('switchToSigninLink');
+        if (switchToSigninLink) {
+            switchToSigninLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                switchTab('signin');
+            });
+        }
+        
+        // Add event listener for resend email link
+        const resendEmailLink = document.getElementById('resendEmailLink');
+        if (resendEmailLink) {
+            resendEmailLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSignupForm();
             });
         }
         
