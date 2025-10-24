@@ -172,6 +172,74 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     background: var(--violet-2);
 }
 
+/* Firebase Password Reset Modal Styling Override */
+.firebaseui-container input[type="password"],
+.firebaseui-container input[type="text"] {
+    padding: 15px !important;
+    border: 2px solid var(--border) !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    transition: border-color 0.3s ease !important;
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
+
+.firebaseui-container input[type="password"]:focus,
+.firebaseui-container input[type="text"]:focus {
+    outline: none !important;
+    border-color: var(--violet-1) !important;
+}
+
+.firebaseui-container button {
+    padding: 15px !important;
+    background: var(--violet-1) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: background 0.3s ease !important;
+    width: 100% !important;
+}
+
+.firebaseui-container button:hover {
+    background: var(--violet-2) !important;
+}
+
+/* Password Reset Modal Styling */
+#passwordResetForm input {
+    padding: 15px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+#passwordResetForm input:focus {
+    outline: none;
+    border-color: var(--violet-1);
+}
+
+#passwordResetForm button {
+    padding: 15px;
+    background: var(--violet-1);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    width: 100%;
+}
+
+#passwordResetForm button:hover {
+    background: var(--violet-2);
+}
+
 .auth-message {
     margin-top: 20px;
     padding: 15px;
@@ -484,6 +552,24 @@ select, .btn{
         </form>
         
         <div id="passwordMessage" class="auth-message"></div>
+    </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div id="passwordResetModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Réinitialiser votre mot de passe</h2>
+            <p>Pour <span id="resetPasswordEmail"></span></p>
+        </div>
+        
+        <form id="passwordResetForm">
+            <input type="password" id="resetNewPassword" placeholder="Nouveau mot de passe" required>
+            <input type="password" id="resetConfirmPassword" placeholder="Confirmez votre mot de passe" required>
+            <button type="submit">Enregistrer</button>
+        </form>
+        
+        <div id="resetPasswordMessage" class="auth-message"></div>
     </div>
 </div>
 
@@ -868,11 +954,60 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
         
         try {
-            await window.sendPasswordResetEmail(window.firebaseAuth, email);
+            const actionCodeSettings = {
+                url: window.location.origin + '/',
+                handleCodeInApp: true
+            };
+            
+            await window.sendPasswordResetEmail(window.firebaseAuth, email, actionCodeSettings);
             showAuthMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte email.', 'success');
         } catch (error) {
             console.error('[RESET] Error:', error);
             showAuthMessage('Erreur lors de l\'envoi de l\'email de réinitialisation.', 'error');
+        }
+    }
+    
+    async function handlePasswordReset() {
+        console.log('[RESET] Handling password reset...');
+        const password = document.getElementById('resetNewPassword').value;
+        const confirmPassword = document.getElementById('resetConfirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            const messageDiv = document.getElementById('resetPasswordMessage');
+            messageDiv.innerHTML = 'Les mots de passe ne correspondent pas.';
+            messageDiv.className = 'auth-message error';
+            return;
+        }
+        
+        if (password.length < 6) {
+            const messageDiv = document.getElementById('resetPasswordMessage');
+            messageDiv.innerHTML = 'Le mot de passe doit contenir au moins 6 caractères.';
+            messageDiv.className = 'auth-message error';
+            return;
+        }
+        
+        try {
+            const user = window.firebaseAuth.currentUser;
+            if (!user) {
+                throw new Error('Utilisateur non connecté');
+            }
+            
+            await window.updatePassword(user, password);
+            
+            const messageDiv = document.getElementById('resetPasswordMessage');
+            messageDiv.innerHTML = 'Mot de passe mis à jour avec succès !';
+            messageDiv.className = 'auth-message success';
+            
+            setTimeout(() => {
+                document.getElementById('passwordResetModal').style.display = 'none';
+                showMainApp({ email: user.email });
+            }, 2000);
+            
+        } catch (error) {
+            console.error('[RESET] Error:', error);
+            const messageDiv = document.getElementById('resetPasswordMessage');
+            messageDiv.innerHTML = 'Erreur lors de la mise à jour du mot de passe.';
+            messageDiv.className = 'auth-message error';
         }
     }
     
@@ -1548,6 +1683,16 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 console.log('[INIT] Password setup form submitted');
                 e.preventDefault();
                 setupPassword();
+            });
+        }
+        
+        // Add event listener for password reset form
+        const passwordResetForm = document.getElementById('passwordResetForm');
+        if (passwordResetForm) {
+            passwordResetForm.addEventListener('submit', function(e) {
+                console.log('[INIT] Password reset form submitted');
+                e.preventDefault();
+                handlePasswordReset();
             });
         }
         
