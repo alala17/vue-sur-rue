@@ -660,7 +660,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         createUserWithEmailAndPassword,
         sendEmailVerification,
         sendPasswordResetEmail,
-        updatePassword
+        updatePassword,
+        applyActionCode,
+        checkActionCode
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     
     // Firebase configuration
@@ -688,6 +690,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     window.isSignInWithEmailLink = isSignInWithEmailLink;
     window.signInWithEmailLink = signInWithEmailLink;
     window.updatePassword = updatePassword;
+    window.applyActionCode = applyActionCode;
+    window.checkActionCode = checkActionCode;
 </script>
 <script>
 (function() {
@@ -954,9 +958,12 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
         
         try {
-            // Don't set actionCodeSettings to let it open in new tab
-            // Firebase will show its own reset page, but we'll intercept it
-            await window.sendPasswordResetEmail(window.firebaseAuth, email);
+            const actionCodeSettings = {
+                url: window.location.origin + window.location.pathname,
+                handleCodeInApp: true
+            };
+            
+            await window.sendPasswordResetEmail(window.firebaseAuth, email, actionCodeSettings);
             showAuthMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte email.', 'success');
         } catch (error) {
             console.error('[RESET] Error:', error);
@@ -984,11 +991,22 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
         
         try {
-            const user = window.firebaseAuth.currentUser;
-            if (!user) {
-                throw new Error('Utilisateur non connecté');
+            // Get the action code from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const oobCode = urlParams.get('oobCode');
+            
+            if (!oobCode) {
+                throw new Error('Code de réinitialisation manquant');
             }
             
+            // Verify the action code
+            await window.checkActionCode(window.firebaseAuth, oobCode);
+            
+            // Get the email from the action code
+            const userCredential = await window.signInWithEmailLink(window.firebaseAuth, document.getElementById('resetPasswordEmail').textContent, window.location.href);
+            const user = userCredential.user;
+            
+            // Update the password
             await window.updatePassword(user, password);
             
             const messageDiv = document.getElementById('resetPasswordMessage');
@@ -1003,7 +1021,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         } catch (error) {
             console.error('[RESET] Error:', error);
             const messageDiv = document.getElementById('resetPasswordMessage');
-            messageDiv.innerHTML = 'Erreur lors de la mise à jour du mot de passe.';
+            messageDiv.innerHTML = 'Erreur lors de la mise à jour du mot de passe: ' + error.message;
             messageDiv.className = 'auth-message error';
         }
     }
