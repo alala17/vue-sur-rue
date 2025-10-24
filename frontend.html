@@ -14,15 +14,16 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10000;
-    padding: 20px;
+    padding: 0;
+    margin: 0;
     box-sizing: border-box;
 }
 
@@ -35,6 +36,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    margin: auto;
+    position: relative;
 }
 
 .modal-header {
@@ -392,11 +395,8 @@ select, .btn{
             <p>Connectez-vous pour rechercher des images similaires dans Paris</p>
         </div>
         
-        <div class="auth-tabs">
-            <button class="tab-button active" id="signupTabBtn">S'inscrire</button>
-        </div>
         
-        <div id="signinTab" class="tab-content">
+        <div id="signinTab" class="tab-content" style="display: none;">
             <h3>Connexion</h3>
             <p>Connectez-vous avec votre email et mot de passe.</p>
             <form id="signInForm">
@@ -410,7 +410,7 @@ select, .btn{
             </div>
         </div>
         
-        <div id="signupTab" class="tab-content active">
+        <div id="signupTab" class="tab-content">
             <h3>Inscription</h3>
             <p>Créez votre compte en vérifiant d'abord votre email.</p>
             <form id="signUpForm">
@@ -644,23 +644,17 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     function switchTab(tabName) {
         console.log('[TAB] Switching to tab:', tabName);
         
-        // Remove active class from all tabs and buttons
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        // Hide all tab contents
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
             content.style.display = 'none';
         });
         
-        // Add active class to selected tab and button
+        // Show selected tab content
         if (tabName === 'signin') {
-            // Hide the signup tab button when showing signin
-            document.getElementById('signupTabBtn').style.display = 'none';
             document.getElementById('signinTab').classList.add('active');
             document.getElementById('signinTab').style.display = 'block';
         } else if (tabName === 'signup') {
-            // Show the signup tab button when showing signup
-            document.getElementById('signupTabBtn').style.display = 'block';
-            document.getElementById('signupTabBtn').classList.add('active');
             document.getElementById('signupTab').classList.add('active');
             document.getElementById('signupTab').style.display = 'block';
         }
