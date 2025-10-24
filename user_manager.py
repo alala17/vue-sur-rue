@@ -39,6 +39,8 @@ class User:
     last_usage_reset: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     stripe_customer_id: Optional[str] = None
     subscription_status: str = "none"  # none, active, canceled
+    subscription_type: Optional[str] = None  # basic, standard, premium
+    monthly_quota: int = 0  # Number of searches allowed per month based on subscription
 
 class UserManager:
     def __init__(self, data_file: str = "users.json"):
@@ -67,7 +69,9 @@ class UserManager:
                             paid_usage_count=user_data.get('paid_usage_count', 0),
                             last_usage_reset=user_data.get('last_usage_reset', datetime.utcnow().isoformat()),
                             stripe_customer_id=user_data.get('stripe_customer_id'),
-                            subscription_status=user_data.get('subscription_status', 'none')
+                            subscription_status=user_data.get('subscription_status', 'none'),
+                            subscription_type=user_data.get('subscription_type'),
+                            monthly_quota=user_data.get('monthly_quota', 0)
                         )
                 logger.info(f"Loaded {len(self.users)} users from {self.data_file}")
             else:
@@ -247,16 +251,17 @@ class UserManager:
         
         # Check usage limits
         if user.subscription_status == "active":
-            # User has active subscription - check paid usage limit
-            if user.paid_usage_count >= 2:
-                logger.info(f"User {email} blocked: paid usage limit reached ({user.paid_usage_count}/2)")
+            # User has active subscription - check paid usage limit based on subscription tier
+            quota = user.monthly_quota if user.monthly_quota > 0 else 1
+            if user.paid_usage_count >= quota:
+                logger.info(f"User {email} blocked: paid usage limit reached ({user.paid_usage_count}/{quota})")
                 return {
                     "can_search": False,
                     "reason": "monthly_limit_reached", 
-                    "message": "You've reached your monthly limit of 2 searches. Reset next month."
+                    "message": f"You've reached your monthly limit of {quota} searches. Reset next month."
                 }
             else:
-                logger.info(f"User {email} allowed: active subscription, paid usage {user.paid_usage_count}/2")
+                logger.info(f"User {email} allowed: active subscription ({user.subscription_type}), paid usage {user.paid_usage_count}/{quota}")
         else:
             # User has no active subscription - check free usage limit
             if user.free_usage_count >= 1:
@@ -308,9 +313,11 @@ class UserManager:
         # Reset if it's been more than 30 days
         if (now - last_reset).days >= 30:
             user.paid_usage_count = 0
+            user.free_usage_count = 0  # Also reset free usage monthly
             user.last_usage_reset = now.isoformat()
             user.updated_at = now.isoformat()
             self.save_users()
+            logger.info(f"Monthly reset completed for {user.email}: paid={user.paid_usage_count}, free={user.free_usage_count}")
     
     def set_stripe_customer(self, email: str, customer_id: str) -> bool:
         """Set Stripe customer ID for a user"""
@@ -339,6 +346,19 @@ class UserManager:
             logger.info(f"Subscription activated for {email}, reset paid usage count to 0")
         
         self.save_users()
+        return True
+    
+    def set_subscription_type(self, email: str, subscription_type: str, monthly_quota: int) -> bool:
+        """Set subscription type and monthly quota for a user"""
+        user = self.get_user(email)
+        if not user:
+            return False
+        
+        user.subscription_type = subscription_type
+        user.monthly_quota = monthly_quota
+        user.updated_at = datetime.utcnow().isoformat()
+        self.save_users()
+        logger.info(f"Set subscription type for {email}: {subscription_type} with quota {monthly_quota}")
         return True
 
 # Global user manager instance
