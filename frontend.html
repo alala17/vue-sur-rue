@@ -748,11 +748,13 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         try {
             showAuthMessage('Envoi du lien de vérification...', 'success');
             
-            // Send magic link for email verification
+            // Send magic link for email verification with proper signup configuration
             const actionCodeSettings = {
                 url: window.location.origin + '?mode=signup&email=' + encodeURIComponent(email),
-                handleCodeInApp: true,
+                handleCodeInApp: true
             };
+            
+            console.log('[SIGNUP] Sending magic link with settings:', actionCodeSettings);
             
             await window.sendSignInLinkToEmail(window.firebaseAuth, email, actionCodeSettings);
             window.localStorage.setItem('emailForSignUp', email);
@@ -863,6 +865,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     
     async function handleEmailLinkSignIn() {
         console.log('[EMAIL_LINK] Handling email link sign-in...');
+        console.log('[EMAIL_LINK] Current URL:', window.location.href);
         
         if (window.isSignInWithEmailLink(window.firebaseAuth, window.location.href)) {
             console.log('[EMAIL_LINK] Email link detected');
@@ -879,6 +882,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[EMAIL_LINK] localStorage emailForSignUp:', emailForSignUp);
             console.log('[EMAIL_LINK] URL email:', urlEmail);
             console.log('[EMAIL_LINK] URL mode:', mode);
+            
+            // Determine if this is a sign-up flow based on URL parameters
+            const isSignUpFlow = mode === 'signup' || emailForSignUp;
             
             // If no email in localStorage but we have URL parameters, use those
             if (!email && !emailForSignUp && urlEmail) {
@@ -909,7 +915,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     const result = await window.signInWithEmailLink(window.firebaseAuth, email, window.location.href);
                     console.log('[EMAIL_LINK] Sign-in successful:', result.user);
                     
-                    if (emailForSignUp) {
+                    if (emailForSignUp || isSignUpFlow) {
                         // This is a sign-up flow - show password setup modal
                         console.log('[EMAIL_LINK] Showing password setup modal for new user');
                         document.getElementById('passwordSetupModal').style.display = 'block';
