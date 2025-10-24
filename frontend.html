@@ -1304,23 +1304,6 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         }
     }
     
-    // Handle email link sign-in
-    async function handleEmailLinkSignIn() {
-        if (window.firebaseAuth && window.isSignInWithEmailLink(window.firebaseAuth, window.location.href)) {
-            let email = window.localStorage.getItem('emailForSignIn');
-            if (!email) {
-                email = prompt('Please provide your email for confirmation');
-            }
-            
-            try {
-                await window.signInWithEmailLink(window.firebaseAuth, email, window.location.href);
-                window.localStorage.removeItem('emailForSignIn');
-                window.location.href = window.location.origin;
-            } catch (error) {
-                alert('Sign-in failed: ' + error.message);
-            }
-        }
-    }
     
     // Show error message
     function showError(message) {
