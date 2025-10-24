@@ -483,8 +483,7 @@ select, .btn{
 <div class="hero-badge">📍</div>
 <div class="hero-text">
 <div class="hero-tagline">VUE SUR RUE</div>
-<h1 class="hero-title">Retrouvez l'adresse d'une annonce immo</h1>
-<div class="hero-subtitle">à partir d'une photo</div>
+<h1 class="hero-title">Retrouvez l'adresse à partir d'une photo</h1>
 </div>
 </div>
 </div>
@@ -575,21 +574,14 @@ select, .btn{
 
 <div class="container" id="mainApp" style="display: none;">
 <div class="card">
-<div class="user-info" id="userInfo" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
-    <div>
-        <span><strong>Connecté en tant que:</strong> <span id="userEmail"></span></span>
-        <br>
-        <button id="checkSubscriptionBtn" class="btn btn-primary" style="background: #17a2b8; border-color: #17a2b8; color: white; margin-top: 5px; font-size: 12px;">Vérifier l'abonnement</button>
-        <button id="debugStatusBtn" class="btn btn-primary" style="background: #6c757d; border-color: #6c757d; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Debug Status</button>
-        <button id="activateSubscriptionBtn" class="btn btn-primary" style="background: #28a745; border-color: #28a745; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Activer Abonnement</button>
-        <button id="debugLocalStorageBtn" class="btn btn-primary" style="background: #fd7e14; border-color: #fd7e14; color: white; margin-top: 5px; font-size: 12px; margin-left: 5px;">Debug Storage</button>
+<div class="user-info" id="userInfo" style="position: relative; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
+    <button id="signOutBtn" style="position: absolute; top: 15px; right: 15px; background: var(--violet-1); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Se déconnecter</button>
+    <div style="margin-right: 120px;">
+        <div style="margin-bottom: 8px;"><span id="userEmail" style="font-weight: 500;"></span></div>
+        <div style="font-size: 14px; color: #666;"><strong>Status:</strong> <span id="statusText">✅ Connecté et prêt à rechercher</span></div>
     </div>
-    <button id="signOutBtn" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white;">Se déconnecter</button>
 </div>
-
-<div id="connectionStatus" style="padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #f0f0f0; text-align: center;">
-    <strong>Status:</strong> <span id="statusText">✅ Connecté et prêt à rechercher</span>
-</div>
+<div id="errorMessage" class="info error" style="display:none; margin-bottom: 20px;"></div>
 <form id="searchForm" class="stack" novalidate>
 <!-- Step 1: Arrondissement -->
 <div>
@@ -631,7 +623,6 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <button type="submit" class="btn btn-primary" id="searchBtn">Rechercher</button>
 </div>
 </form>
-<div id="errorMessage" class="info error" style="display:none;"></div>
 <div id="results" style="display:none;">
 <div class="results-title">Résultats par ordre de priorité.</div>
 <div id="queryImageContainer" class="query-image-container" style="display:none;">
@@ -1335,51 +1326,34 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         const errorMessage = document.getElementById('errorMessage');
         if (errorMessage) {
             errorMessage.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <h3 style="color: #e74c3c; margin-bottom: 15px;">💳 Subscription Required</h3>
-                    <p style="margin-bottom: 20px;">${message}</p>
-                    <p style="margin-bottom: 20px; font-size: 14px; color: #666;">
-                        Subscribe for €39/month to get 15 image searches per month
+                <div style="background: linear-gradient(135deg, #f0e9ff 0%, #e9e3ff 100%); border: 2px solid var(--violet-1); border-radius: 12px; padding: 25px; text-align: center;">
+                    <h3 style="color: var(--violet-1); margin-bottom: 15px; font-weight: bold; font-size: 20px;">💳 Abonnement requis</h3>
+                    <p style="margin-bottom: 20px; color: #555; font-size: 15px;">Vous avez utilisé votre crédit gratuit. Veuillez souscrire pour continuer.</p>
+                    <p style="margin-bottom: 25px; font-size: 14px; color: #666;">
+                        Souscrivez à €39 par mois pour avoir 15 images par mois
                     </p>
                     <button id="subscribeBtn" style="
-                        background: #28a745; 
+                        background: var(--violet-1); 
                         color: white; 
                         border: none; 
-                        padding: 12px 24px; 
-                        border-radius: 6px; 
+                        padding: 14px 28px; 
+                        border-radius: 8px; 
                         cursor: pointer; 
                         font-size: 16px; 
-                        font-weight: 500;
-                        margin-right: 10px;
+                        font-weight: 600;
+                        box-shadow: 0 4px 6px rgba(123, 92, 255, 0.3);
                     ">
-                        Subscribe Now - €39/month
-                    </button>
-                    <button id="manualActivateBtn" style="
-                        background: #ffc107; 
-                        color: black; 
-                        border: none; 
-                        padding: 12px 24px; 
-                        border-radius: 6px; 
-                        cursor: pointer; 
-                        font-size: 16px; 
-                        font-weight: 500;
-                    ">
-                        Activer manuellement (Test)
+                        €39 par mois
                     </button>
                 </div>
             `;
             errorMessage.style.display = 'block';
             
-            // Add event listeners to the buttons
+            // Add event listener to the subscribe button
             setTimeout(() => {
                 const subscribeBtn = document.getElementById('subscribeBtn');
                 if (subscribeBtn) {
                     subscribeBtn.addEventListener('click', createPaymentSession);
-                }
-                
-                const manualActivateBtn = document.getElementById('manualActivateBtn');
-                if (manualActivateBtn) {
-                    manualActivateBtn.addEventListener('click', manualActivateSubscription);
                 }
             }, 100);
         }
