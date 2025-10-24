@@ -1281,7 +1281,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         if (statusText) {
             if (usageData.can_search) {
                 if (usageData.subscription_status === 'active') {
-                    statusText.textContent = `✅ Connected! ${2 - usageData.paid_usage_count} searches remaining this month`;
+                    statusText.textContent = `✅ Connected! ${15 - usageData.paid_usage_count} searches remaining this month`;
                 } else {
                     statusText.textContent = `✅ Connected! ${1 - usageData.free_usage_count} free search remaining`;
                 }
@@ -1339,7 +1339,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     <h3 style="color: #e74c3c; margin-bottom: 15px;">💳 Subscription Required</h3>
                     <p style="margin-bottom: 20px;">${message}</p>
                     <p style="margin-bottom: 20px; font-size: 14px; color: #666;">
-                        Subscribe for €9.99/month to get 2 image searches per month
+                        Subscribe for €39/month to get 15 image searches per month
                     </p>
                     <button id="subscribeBtn" style="
                         background: #28a745; 
@@ -1352,7 +1352,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                         font-weight: 500;
                         margin-right: 10px;
                     ">
-                        Subscribe Now - €9.99/month
+                        Subscribe Now - €39/month
                     </button>
                     <button id="manualActivateBtn" style="
                         background: #ffc107; 
@@ -1428,7 +1428,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             
             let message = `Status actuel:\n`;
             message += `- Recherches gratuites utilisées: ${data.free_usage_count}/1\n`;
-            message += `- Recherches payantes utilisées: ${data.paid_usage_count}/2\n`;
+            message += `- Recherches payantes utilisées: ${data.paid_usage_count}/15\n`;
             message += `- Statut d'abonnement: ${data.subscription_status}\n`;
             message += `- Peut rechercher: ${data.can_search ? 'Oui' : 'Non'}\n`;
             
@@ -1470,7 +1470,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 message += `👤 Rôle: ${data.user_data.role}\n`;
                 message += `💳 Abonnement: ${data.user_data.subscription_status}\n`;
                 message += `🆓 Gratuites: ${data.user_data.free_usage_count}/1\n`;
-                message += `💰 Payantes: ${data.user_data.paid_usage_count}/2\n`;
+                message += `💰 Payantes: ${data.user_data.paid_usage_count}/15\n`;
                 message += `🆔 Customer ID: ${data.user_data.stripe_customer_id || 'Aucun'}\n\n`;
                 
                 message += `🔍 Debug Info:\n`;
