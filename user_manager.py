@@ -295,7 +295,8 @@ class UserManager:
         if user.subscription_status == "active":
             # User has active subscription - increment paid usage
             user.paid_usage_count += 1
-            logger.info(f"Incremented paid usage for {email}: {user.paid_usage_count}/2")
+            quota = user.monthly_quota if user.monthly_quota > 0 else 15
+            logger.info(f"Incremented paid usage for {email}: {user.paid_usage_count}/{quota}")
         else:
             # User has no active subscription - increment free usage
             user.free_usage_count += 1
@@ -313,7 +314,9 @@ class UserManager:
         # Reset if it's been more than 30 days
         if (now - last_reset).days >= 30:
             user.paid_usage_count = 0
-            user.free_usage_count = 0  # Also reset free usage monthly
+            # Only reset free usage if user has no active subscription
+            if user.subscription_status != "active":
+                user.free_usage_count = 0
             user.last_usage_reset = now.isoformat()
             user.updated_at = now.isoformat()
             self.save_users()
