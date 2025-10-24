@@ -393,6 +393,9 @@ select, .btn{
             <p>Connectez-vous pour rechercher des images similaires dans Paris</p>
         </div>
         
+        <div class="auth-tabs">
+            <button class="tab-button active" id="signupTabBtn">S'inscrire</button>
+        </div>
         
         <div id="signinTab" class="tab-content">
             <h3>Connexion</h3>
@@ -409,7 +412,6 @@ select, .btn{
         </div>
         
         <div id="signupTab" class="tab-content active">
-            <h3>Inscription</h3>
             <p>Créez votre compte en vérifiant d'abord votre email.</p>
             <form id="signUpForm">
                 <input type="email" id="signupEmail" placeholder="Votre adresse email" required>
@@ -649,11 +651,16 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             content.style.display = 'none';
         });
         
-        // Add active class to selected tab
+        // Add active class to selected tab and button
         if (tabName === 'signin') {
+            // Hide the signup tab button when showing signin
+            document.getElementById('signupTabBtn').style.display = 'none';
             document.getElementById('signinTab').classList.add('active');
             document.getElementById('signinTab').style.display = 'block';
         } else if (tabName === 'signup') {
+            // Show the signup tab button when showing signup
+            document.getElementById('signupTabBtn').style.display = 'block';
+            document.getElementById('signupTabBtn').classList.add('active');
             document.getElementById('signupTab').classList.add('active');
             document.getElementById('signupTab').style.display = 'block';
         }
