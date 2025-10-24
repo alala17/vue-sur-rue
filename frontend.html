@@ -863,7 +863,6 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     
     async function handleEmailLinkSignIn() {
         console.log('[EMAIL_LINK] Handling email link sign-in...');
-        console.log('[EMAIL_LINK] Current URL:', window.location.href);
         
         if (window.isSignInWithEmailLink(window.firebaseAuth, window.location.href)) {
             console.log('[EMAIL_LINK] Email link detected');
@@ -871,7 +870,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             let email = window.localStorage.getItem('emailForSignIn');
             let emailForSignUp = window.localStorage.getItem('emailForSignUp');
             
-            // Check URL parameters for email (fallback)
+            // Check URL parameters for email (fallback for when localStorage is cleared)
             const urlParams = new URLSearchParams(window.location.search);
             const urlEmail = urlParams.get('email');
             const mode = urlParams.get('mode');
