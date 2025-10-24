@@ -252,7 +252,7 @@ class UserManager:
         # Check usage limits
         if user.subscription_status == "active":
             # User has active subscription - check paid usage limit based on subscription tier
-            quota = user.monthly_quota if user.monthly_quota > 0 else 1
+            quota = user.monthly_quota if user.monthly_quota > 0 else 15
             if user.paid_usage_count >= quota:
                 logger.info(f"User {email} blocked: paid usage limit reached ({user.paid_usage_count}/{quota})")
                 return {
