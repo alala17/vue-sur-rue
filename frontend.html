@@ -36,8 +36,6 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    margin: auto;
-    position: relative;
 }
 
 .modal-header {
@@ -644,13 +642,14 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     function switchTab(tabName) {
         console.log('[TAB] Switching to tab:', tabName);
         
-        // Hide all tab contents
+        // Remove active class from all tabs and buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
             content.style.display = 'none';
         });
         
-        // Show selected tab content
+        // Add active class to selected tab
         if (tabName === 'signin') {
             document.getElementById('signinTab').classList.add('active');
             document.getElementById('signinTab').style.display = 'block';
