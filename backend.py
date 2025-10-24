@@ -733,43 +733,20 @@ def create_checkout_session():
             logger.error("No current user found")
             return jsonify({"error": "User not found"}), 400
         
-        # Get subscription tier from request
-        data = request.get_json() or {}
-        tier = data.get('tier', 'basic')  # basic, standard, premium
-        
-        logger.info(f"Creating checkout for user: {current_user['email']}, tier: {tier}")
+        logger.info(f"Creating checkout for user: {current_user['email']}")
         
         # Check Stripe configuration
         if not stripe.api_key:
             logger.error("Stripe API key not configured")
             return jsonify({"error": "Payment system not configured"}), 500
         
-        # Define subscription tiers
-        tiers = {
-            'basic': {
-                'name': '39€ par mois',
-                'description': '1 recherche par mois',
-                'amount': 3900,  # €39.00 in cents
-                'quota': 1
-            },
-            'standard': {
-                'name': '149€ par mois',
-                'description': '2 recherches par mois',
-                'amount': 14900,  # €149.00 in cents
-                'quota': 2
-            },
-            'premium': {
-                'name': '499€ par mois',
-                'description': '3 recherches par mois',
-                'amount': 49900,  # €499.00 in cents
-                'quota': 3
-            }
+        # Single subscription plan
+        plan_config = {
+            'name': '39€ par mois',
+            'description': '15 recherches par mois',
+            'amount': 3900,  # €39.00 in cents
+            'quota': 15
         }
-        
-        if tier not in tiers:
-            return jsonify({"error": "Invalid subscription tier"}), 400
-        
-        tier_config = tiers[tier]
         
         # Create or get Stripe customer
         user = user_manager.get_user(current_user['email'])
@@ -783,7 +760,7 @@ def create_checkout_session():
             logger.info(f"Created Stripe customer: {customer.id}")
         
         # Create checkout session
-        logger.info(f"Creating Stripe checkout session for tier: {tier_config['name']}")
+        logger.info(f"Creating Stripe checkout session for plan: {plan_config['name']}")
         checkout_session = stripe.checkout.Session.create(
             customer=user.stripe_customer_id,
             payment_method_types=['card'],
@@ -791,10 +768,10 @@ def create_checkout_session():
                 'price_data': {
                     'currency': 'eur',
                     'product_data': {
-                        'name': tier_config['name'],
-                        'description': tier_config['description'],
+                        'name': plan_config['name'],
+                        'description': plan_config['description'],
                     },
-                    'unit_amount': tier_config['amount'],
+                    'unit_amount': plan_config['amount'],
                     'recurring': {
                         'interval': 'month',
                     },
@@ -806,8 +783,8 @@ def create_checkout_session():
             cancel_url=request.url_root + '?payment=cancelled',
             metadata={
                 'user_email': current_user['email'],
-                'subscription_tier': tier,
-                'monthly_quota': str(tier_config['quota'])
+                'subscription_tier': 'standard',
+                'monthly_quota': str(plan_config['quota'])
             }
         )
         logger.info(f"Created checkout session: {checkout_session.id}")
