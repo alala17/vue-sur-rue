@@ -509,9 +509,6 @@ select, .btn{
             <div class="auth-links">
                 <a href="#" id="forgotPasswordLink">Mot de passe oublié ?</a>
                 <p>Vous n'avez pas de compte ? <a href="#" id="switchToSignupLink">S'inscrire</a></p>
-                <p style="margin-top: 15px; text-align: center;">
-                    <a href="mailto:vuesurue@gmail.com" style="color: var(--violet-1); text-decoration: none; font-size: 14px;">📧 Contacter support</a>
-                </p>
             </div>
         </div>
         
@@ -578,7 +575,10 @@ select, .btn{
 <div class="container" id="mainApp" style="display: none;">
 <div class="card">
 <div class="user-info" id="userInfo" style="position: relative; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
-    <button id="signOutBtn" style="position: absolute; top: 15px; right: 15px; background: var(--violet-1); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;">Se déconnecter</button>
+    <div style="position: absolute; top: 15px; right: 15px; text-align: right;">
+        <button id="signOutBtn" style="background: var(--violet-1); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; margin-bottom: 8px; display: block; width: 100%;">Se déconnecter</button>
+        <a href="mailto:vuesurue@gmail.com" style="color: var(--violet-1); text-decoration: none; font-size: 12px; display: block;">📧 Contacter support</a>
+    </div>
     <div style="margin-right: 120px;">
         <div style="margin-bottom: 8px;"><span id="userEmail" style="font-weight: 500;"></span></div>
         <div style="font-size: 14px; color: #666;"><strong>Status:</strong> <span id="statusText">✅ Connecté et prêt à rechercher</span></div>
