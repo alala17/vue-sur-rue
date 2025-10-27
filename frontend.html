@@ -798,7 +798,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 </div>
 </form>
 <div id="results" style="display:none;">
-<div class="results-title">Résultats par ordre de priorité.</div>
+<div class="results-title">Résultats les plus probables : ouvrez Google Maps et vérifiez l'endroit en mode Street View.</div>
 <div id="queryImageContainer" class="query-image-container" style="display:none;">
 <div class="query-image-title">Votre image de recherche :</div>
 <img id="queryImage" alt="Image de recherche" class="query-image">
@@ -1772,6 +1772,15 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         });
         
         results.style.display = 'block';
+        
+        // Scroll to results section
+        setTimeout(() => {
+            results.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+            });
+        }, 100);
     }
     
     // Perform search
