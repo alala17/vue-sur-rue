@@ -82,6 +82,44 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     border-bottom-color: var(--violet-1);
 }
 
+/* Gradient button styles */
+.gradient-btn {
+    background: linear-gradient(135deg, #7b5cff 0%, #9b7cff 50%, #b59cff 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(123, 92, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.gradient-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(123, 92, 255, 0.4);
+}
+
+.gradient-btn:active {
+    transform: translateY(0px) scale(1);
+}
+
+.gradient-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.gradient-btn:hover::before {
+    left: 100%;
+}
+
 .tab-content {
     display: none;
 }
@@ -125,18 +163,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
 
 .tab-content button {
     padding: 15px;
-    background: var(--violet-1);
-    color: white;
-    border: none;
-    border-radius: 12px;
     font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.tab-content button:hover {
-    background: var(--violet-2);
+    width: 100%;
 }
 
 /* Password Setup Modal Styling */
@@ -157,19 +185,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
 
 #passwordSetupForm button {
     padding: 15px;
-    background: var(--violet-1);
-    color: white;
-    border: none;
-    border-radius: 12px;
     font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
     width: 100%;
-}
-
-#passwordSetupForm button:hover {
-    background: var(--violet-2);
 }
 
 /* Firebase Password Reset Modal Styling Override */
@@ -192,19 +209,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
 
 .firebaseui-container button {
     padding: 15px !important;
-    background: var(--violet-1) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 12px !important;
     font-size: 16px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    transition: background 0.3s ease !important;
     width: 100% !important;
-}
-
-.firebaseui-container button:hover {
-    background: var(--violet-2) !important;
 }
 
 /* Password Reset Modal Styling */
@@ -225,19 +231,8 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
 
 #passwordResetForm button {
     padding: 15px;
-    background: var(--violet-1);
-    color: white;
-    border: none;
-    border-radius: 12px;
     font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
     width: 100%;
-}
-
-#passwordResetForm button:hover {
-    background: var(--violet-2);
 }
 
 .auth-message {
@@ -377,16 +372,11 @@ select, .btn{
     touch-action: manipulation;
 }
 .btn-primary{ 
-    background:transparent; 
-    border-color:var(--violet-1); 
-    border-width:2px;
-    color:var(--violet-1); 
     font-weight:normal; 
     transition: transform .05s ease, box-shadow .2s ease, background .2s ease; 
 }
 .btn-primary:hover{ 
     transform: translateY(-1px); 
-    background:#f0edff;
 }
 .btn-primary:active{ 
     transform: translateY(0px); 
@@ -504,7 +494,7 @@ select, .btn{
             <form id="signInForm">
                 <input type="email" id="signinEmail" placeholder="Votre adresse email" required>
                 <input type="password" id="signinPassword" placeholder="Votre mot de passe" required>
-                <button type="submit">Se connecter</button>
+                <button type="submit" class="gradient-btn">Se connecter</button>
             </form>
             <div class="auth-links">
                 <a href="#" id="forgotPasswordLink">Mot de passe oublié ?</a>
@@ -516,7 +506,7 @@ select, .btn{
             <p>Créez votre compte en vérifiant d'abord votre email.</p>
             <form id="signUpForm">
                 <input type="email" id="signupEmail" placeholder="Votre adresse email" required>
-                <button type="submit">S'inscrire</button>
+                <button type="submit" class="gradient-btn">S'inscrire</button>
             </form>
             <div class="auth-links">
                 <p>Vous avez déjà un compte ? <a href="#" id="switchToSigninLink">Se connecter</a></p>
@@ -547,7 +537,7 @@ select, .btn{
         <form id="passwordSetupForm">
             <input type="password" id="newPassword" placeholder="Créez un mot de passe" required>
             <input type="password" id="confirmPassword" placeholder="Confirmez votre mot de passe" required>
-            <button type="submit">Finaliser mon compte</button>
+            <button type="submit" class="gradient-btn">Finaliser mon compte</button>
         </form>
         
         <div id="passwordMessage" class="auth-message"></div>
@@ -565,7 +555,7 @@ select, .btn{
         <form id="passwordResetForm">
             <input type="password" id="resetNewPassword" placeholder="Nouveau mot de passe" required>
             <input type="password" id="resetConfirmPassword" placeholder="Confirmez votre mot de passe" required>
-            <button type="submit">Enregistrer</button>
+            <button type="submit" class="gradient-btn">Enregistrer</button>
         </form>
         
         <div id="resetPasswordMessage" class="auth-message"></div>
@@ -576,7 +566,7 @@ select, .btn{
 <div class="card">
             <div class="user-info" id="userInfo" style="position: relative; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
                 <div style="position: absolute; top: 15px; right: 15px; text-align: right;">
-                    <button id="signOutBtn" style="background: var(--violet-1); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; margin-bottom: 8px; display: block; width: 100%;">Se déconnecter</button>
+                    <button id="signOutBtn" class="gradient-btn" style="padding: 8px 16px; font-size: 14px; margin-bottom: 8px; display: block; width: 100%;">Se déconnecter</button>
                     <a href="mailto:vuesurue@gmail.com" style="color: var(--violet-1); text-decoration: none; font-size: 12px; display: block;">📧 Contacter support</a>
                 </div>
                 <div style="margin-right: 120px;">
@@ -623,7 +613,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <!-- Hidden input for cropped JPEG -->
 <input type="hidden" name="image_base64" id="imageBase64">
 <div class="actions">
-<button type="submit" class="btn btn-primary" id="searchBtn">Rechercher</button>
+<button type="submit" class="btn btn-primary gradient-btn" id="searchBtn">Rechercher</button>
 </div>
 </form>
 <div id="results" style="display:none;">
