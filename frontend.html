@@ -616,26 +616,9 @@ select, .btn{
             </div>
 <div id="errorMessage" class="info error" style="display:none; margin-bottom: 20px;"></div>
 <form id="searchForm" class="stack" novalidate>
-<!-- Step 1: Arrondissement -->
+<!-- Step 1: Image -->
 <div>
-<label>Étape 1 - Sélectionnez l'arrondissement</label>
-<select name="namespace" id="namespaceSelect" required>
-<option value="">Choisir…</option>
-</select>
-</div>
-<!-- Step 2: Mode -->
-<div>
-<label>Étape 2 - Sélectionnez le mode</label>
-<div class="mode-group" id="modeGroup">
-<button type="button" class="mode-btn" data-mode="full">Bâtiment entier</button>
-<button type="button" class="mode-btn" data-mode="mid" data-active="true">Partie du bâtiment</button>
-<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
-</div>
-<input type="hidden" name="mode" id="modeInput" value="mid">
-</div>
-<!-- Step 3: Image -->
-<div>
-<label>Étape 3 - Téléchargez une image et sélectionnez le cadrage d'analyse</label>
+<label>Étape 1 - Téléchargez une image et sélectionnez le cadrage d'analyse</label>
 <div class="dropzone" id="dropzone">
 <div class="dz-title">Glissez-déposez une image</div>
 <div class="dz-sub">ou</div>
@@ -649,6 +632,23 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <div class="cropper-area" id="cropperArea" aria-live="polite" style="display:none">
 <img id="preview" alt="Aperçu de l'image sélectionnée">
 </div>
+</div>
+<!-- Step 2: Arrondissement -->
+<div>
+<label>Étape 2 - Sélectionnez l'arrondissement</label>
+<select name="namespace" id="namespaceSelect" required>
+<option value="">Choisir…</option>
+</select>
+</div>
+<!-- Step 3: Mode -->
+<div>
+<label>Étape 3 - Sélectionnez le mode</label>
+<div class="mode-group" id="modeGroup">
+<button type="button" class="mode-btn" data-mode="full">Bâtiment entier</button>
+<button type="button" class="mode-btn" data-mode="mid" data-active="true">Partie du bâtiment</button>
+<button type="button" class="mode-btn" data-mode="detail">Détail architectural</button>
+</div>
+<input type="hidden" name="mode" id="modeInput" value="mid">
 </div>
 <!-- Hidden input for cropped JPEG -->
 <input type="hidden" name="image_base64" id="imageBase64">
