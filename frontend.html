@@ -752,7 +752,7 @@ select, .btn{
                 </div>
                 <div style="margin-right: 120px;">
                     <div style="margin-bottom: 8px;"><span id="userEmail" style="font-weight: 500;"></span></div>
-                    <div style="font-size: 14px; color: #666;"><strong>Status:</strong> <span id="statusText">✅ Connecté et prêt à rechercher</span></div>
+                    <div style="font-size: 14px; color: #666;"><strong>Status:</strong> <span id="statusText">Prêt à rechercher</span></div>
                 </div>
             </div>
 <div id="errorMessage" class="info error" style="display:none; margin-bottom: 20px;"></div>
@@ -920,7 +920,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             });
             
             console.log('[API] Loaded namespaces:', availableNamespaces.length);
-            if (statusText) statusText.textContent = `✅ Prêt à rechercher - ${availableNamespaces.length} arrondissements chargés`;
+            if (statusText) statusText.textContent = `Prêt à rechercher - ${availableNamespaces.length} arrondissements chargés`;
         } catch (error) {
             console.error('[API] Failed to load namespaces:', error);
             if (statusText) statusText.textContent = `❌ Connexion échouée: ${error.message}`;
@@ -1446,9 +1446,9 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         if (statusText) {
             if (usageData.can_search) {
                 if (usageData.subscription_status === 'active') {
-                    statusText.textContent = `✅ Connecté ! ${15 - usageData.paid_usage_count} recherches restantes ce mois`;
+                    statusText.textContent = `${15 - usageData.paid_usage_count} recherches restantes ce mois`;
                 } else {
-                    statusText.textContent = `✅ Connecté ! ${1 - usageData.free_usage_count} recherche gratuite restante`;
+                    statusText.textContent = `${1 - usageData.free_usage_count} recherche gratuite restante`;
                 }
             } else {
                 if (usageData.reason === 'free_limit_reached') {
