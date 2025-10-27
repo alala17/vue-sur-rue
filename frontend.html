@@ -120,6 +120,46 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     left: 100%;
 }
 
+/* Action button styles - matching the reference button */
+.action-btn {
+    background: linear-gradient(135deg, #7b5cff 0%, #9b7cff 50%, #b59cff 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(123, 92, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+    padding: 12px 24px;
+    font-size: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(123, 92, 255, 0.4);
+}
+
+.action-btn:active {
+    transform: translateY(0px) scale(1);
+}
+
+.action-btn:focus-visible {
+    outline: 2px solid #7b5cff;
+    outline-offset: 2px;
+}
+
+.action-btn:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 .tab-content {
     display: none;
 }
@@ -599,7 +639,7 @@ select, .btn{
 <div class="dropzone" id="dropzone">
 <div class="dz-title">Glissez-déposez une image</div>
 <div class="dz-sub">ou</div>
-<button type="button" class="btn btn-primary gradient-btn" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
+<button type="button" class="action-btn" id="pickBtn" aria-controls="fileInput">Téléchargez une image</button>
 <input class="hidden-input" type="file" id="fileInput" name="image" accept="image/*" required>
 <div class="dropzone-info">
 Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres/reflets) et choisissez le mode adapté : bâtiment entier, partie du bâtiment ou détail architectural. Priorisez des éléments visibles depuis la rue. Évitez toitures et éléments non visibles depuis la rue par un humain.
@@ -613,7 +653,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 <!-- Hidden input for cropped JPEG -->
 <input type="hidden" name="image_base64" id="imageBase64">
 <div class="actions">
-<button type="submit" class="btn btn-primary gradient-btn" id="searchBtn">Rechercher</button>
+<button type="submit" class="action-btn" id="searchBtn">Rechercher</button>
 </div>
 </form>
 <div id="results" style="display:none;">
