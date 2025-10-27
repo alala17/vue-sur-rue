@@ -654,6 +654,9 @@ select, .btn{
 <div class="hero-tagline">VueSuRue</div>
 <h1 class="hero-title">Retrouvez l'adresse à partir d'une photo</h1>
 </div>
+<div style="margin-left: auto;">
+<button id="signOutBtn" class="mode-btn" style="padding: 8px 16px; font-size: 14px;">Se déconnecter</button>
+</div>
 </div>
 </div>
 <!-- Authentication Modal -->
@@ -753,15 +756,8 @@ select, .btn{
 
 <div class="container" id="mainApp" style="display: none;">
 <div class="card">
-            <div class="user-info" id="userInfo" style="position: relative; padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3;">
-                <div style="position: absolute; top: 15px; right: 15px; text-align: right;">
-                    <button id="signOutBtn" class="mode-btn" style="margin-bottom: 8px; display: block; width: 100%;">Se déconnecter</button>
-                    <a href="mailto:vuesurue@gmail.com" style="color: var(--violet-1); text-decoration: none; font-size: 12px; display: block;">📧 Contacter support</a>
-                </div>
-                <div style="margin-right: 120px;">
-                    <div style="margin-bottom: 8px;"><span id="userEmail" style="font-weight: 500;"></span></div>
-                    <div style="font-size: 14px; color: #666;"><strong>Status:</strong> <span id="statusText">Prêt à rechercher</span></div>
-                </div>
+            <div class="user-info" id="userInfo" style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background: #e8f5e8; border: 1px solid #c3e6c3; text-align: center;">
+                <div style="font-size: 14px; color: #666;"><span id="statusText">Prêt à rechercher</span></div>
             </div>
 <div id="errorMessage" class="info error" style="display:none; margin-bottom: 20px;"></div>
 <form id="searchForm" class="stack" novalidate>
@@ -2224,5 +2220,11 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     }
 })();
 </script>
+
+<!-- Support Contact Footer -->
+<div style="text-align: center; padding: 20px; margin-top: 40px; border-top: 1px solid var(--border);">
+    <a href="mailto:vuesurue@gmail.com" style="color: var(--violet-1); text-decoration: none; font-size: 14px;">📧 Contacter support</a>
+</div>
+
 </body>
 </html>
