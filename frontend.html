@@ -383,6 +383,7 @@ form{ position: relative; z-index: 1; }
 .hero{ background:#ffffff; color:var(--violet-1); padding: 28px 20px 18px; border-bottom: 1px solid var(--border); }
 .hero-inner{ max-width: 1100px; margin: 0 auto; display:flex; align-items:center; gap:20px; }
 .hero-badge{ width:60px;height:60px;border-radius:16px;background:linear-gradient(135deg, #7b5cff 0%, #9b7cff 100%);display:flex;align-items:center;justify-content:center; font-size:28px; color:white; box-shadow: 0 4px 15px rgba(123, 92, 255, 0.3); }
+.hero-badge svg { color: white; }
 .hero-text{ display:flex; flex-direction:column; gap:8px; }
 .hero-tagline{ font-size: 16px; font-weight: 700; color: #333; margin:0; letter-spacing: 0.5px; }
 .hero-title{ margin:0; font-size: 24px; font-weight: 700; line-height:1.2; color:#7b5cff; }
@@ -510,7 +511,12 @@ select, .btn{
 <body>
 <div class="hero">
 <div class="hero-inner">
-<div class="hero-badge">📍</div>
+<div class="hero-badge">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin w-6 h-6 text-primary-foreground">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
+<circle cx="12" cy="10" r="3"></circle>
+</svg>
+</div>
 <div class="hero-text">
 <div class="hero-tagline">VueSuRue</div>
 <h1 class="hero-title">Retrouvez l'adresse à partir d'une photo</h1>
