@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Vue sur Rue — retrouvez l'adresse d'une annonce immo à partir d'une photo</title>
 <link href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet"/>
 <style>
@@ -38,6 +39,130 @@ body{ margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, 
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+/* Mobile-specific modal styles */
+@media (max-width: 768px) {
+    .modal {
+        background: white;
+        backdrop-filter: none;
+    }
+    
+    .modal-content {
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+        padding: 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: none;
+        box-shadow: none;
+        overflow-y: auto;
+    }
+    
+    /* Mobile app content styles */
+    .container {
+        padding: 0 15px;
+        margin: 10px auto 20px;
+    }
+    
+    .card {
+        padding: 15px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stack {
+        gap: 25px;
+    }
+    
+    .stack > div {
+        margin-bottom: 15px;
+    }
+    
+    /* Mobile hero adjustments */
+    .hero {
+        padding: 20px 15px 15px;
+    }
+    
+    .hero-inner {
+        gap: 15px;
+    }
+    
+    .hero-badge {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    
+    .hero-tagline {
+        font-size: 14px;
+    }
+    
+    .hero-title {
+        font-size: 20px;
+    }
+    
+    /* Mobile form elements */
+    .stack label {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    
+    select, .btn, input {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    
+    /* Mobile mode buttons */
+    .mode-group {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .mode-btn {
+        padding: 12px;
+        font-size: 14px;
+        text-align: center;
+    }
+    
+    /* Mobile dropzone */
+    .dropzone {
+        padding: 20px;
+        border-radius: 12px;
+    }
+    
+    .dz-title, .dz-sub {
+        font-size: 14px;
+    }
+    
+    /* Mobile action buttons */
+    .action-btn {
+        padding: 14px 20px;
+        font-size: 16px;
+        width: 100%;
+    }
+    
+    /* Mobile user info */
+    .user-info {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .user-info button {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    /* Mobile results grid */
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
 }
 
 .modal-header {
