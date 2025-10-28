@@ -1054,14 +1054,27 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[SIGNIN] User signed in:', userCredential.user);
             console.log('[SIGNIN] User email:', userCredential.user.email);
             console.log('[SIGNIN] User email verified:', userCredential.user.emailVerified);
-            showAuthMessage('Connexion réussie !', 'success');
-            
-            // Wait a moment for the auth state to update
-            setTimeout(() => {
-                console.log('[SIGNIN] Checking auth state after sign in...');
-                console.log('[SIGNIN] Current user:', window.firebaseAuth.currentUser);
-            }, 100);
-            
+
+            // Immediately verify with backend and enter the app
+            const idToken = await userCredential.user.getIdToken();
+            const verifyResponse = await fetch('/api/auth/verify', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            const verifyData = await verifyResponse.json();
+            console.log('[SIGNIN] Backend verify response:', verifyData);
+
+            if (verifyData && verifyData.authenticated) {
+                showAuthMessage('Connexion réussie !', 'success');
+                showMainApp(verifyData.user);
+            } else {
+                console.warn('[SIGNIN] Backend did not authenticate user.');
+                showAuthMessage("Échec de la vérification du compte. Veuillez réessayer.", 'error');
+            }
+
         } catch (error) {
             console.error('[SIGNIN] Error:', error);
             let errorMessage = 'Erreur de connexion.';
