@@ -1016,8 +1016,13 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         // Show main app
         document.getElementById('mainApp').style.display = 'block';
         
-        // Update user info
-        document.getElementById('userEmail').textContent = user.email;
+        // Update user info (guard: email element may not exist in current UI)
+        (function(){
+            const emailEl = document.getElementById('userEmail');
+            if (emailEl && user && user.email) {
+                emailEl.textContent = user.email;
+            }
+        })();
         
         // Load namespaces
         loadNamespaces();
