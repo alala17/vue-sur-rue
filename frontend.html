@@ -694,6 +694,12 @@ select, .btn{
             <p>Créez votre compte en vérifiant d'abord votre email.</p>
             <form id="signUpForm">
                 <input type="email" id="signupEmail" placeholder="Votre adresse email" required>
+                <div style="margin: 15px 0; display: flex; align-items: flex-start; gap: 8px;">
+                    <input type="checkbox" id="acceptCGU" required style="margin-top: 2px;">
+                    <label for="acceptCGU" style="font-size: 14px; color: #666; line-height: 1.4;">
+                        J'accepte les <a href="https://vuesurue.com/cgu" target="_blank" style="color: var(--violet-1); text-decoration: underline;">Conditions Générales d'Utilisation</a>
+                    </label>
+                </div>
                 <button type="submit" class="gradient-btn">S'inscrire</button>
             </form>
             <div class="auth-links">
@@ -1117,9 +1123,15 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function signUp() {
         console.log('[SIGNUP] Sign up function called');
         const email = document.getElementById('signupEmail').value.trim();
+        const acceptCGU = document.getElementById('acceptCGU').checked;
         
         if (!email) {
             showAuthMessage('Veuillez entrer votre adresse email.', 'error');
+            return;
+        }
+        
+        if (!acceptCGU) {
+            showAuthMessage('Veuillez accepter les Conditions Générales d\'Utilisation.', 'error');
             return;
         }
         
