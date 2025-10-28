@@ -974,9 +974,11 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         // Check if user is signed in
         window.onAuthStateChanged(auth, async (user) => {
+            console.log('[AUTH] Auth state changed, user:', user);
             if (user) {
                 currentUser = user;
                 authToken = await user.getIdToken();
+                console.log('[AUTH] Got auth token, verifying with backend...');
                 
                 // Verify with backend
                 try {
@@ -989,6 +991,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     });
                     
                     const data = await response.json();
+                    console.log('[AUTH] Backend verification response:', data);
                     
                     if (data.authenticated) {
                         console.log('[AUTH] User is authenticated, showing main app');
@@ -1002,6 +1005,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                     showAuthModal();
                 }
             } else {
+                console.log('[AUTH] No user, showing auth modal');
                 showAuthModal();
             }
         });
@@ -1050,7 +1054,16 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             showAuthMessage('Connexion en cours...', 'success');
             const userCredential = await window.signInWithEmailAndPassword(window.firebaseAuth, email, password);
             console.log('[SIGNIN] User signed in:', userCredential.user);
+            console.log('[SIGNIN] User email:', userCredential.user.email);
+            console.log('[SIGNIN] User email verified:', userCredential.user.emailVerified);
             showAuthMessage('Connexion réussie !', 'success');
+            
+            // Wait a moment for the auth state to update
+            setTimeout(() => {
+                console.log('[SIGNIN] Checking auth state after sign in...');
+                console.log('[SIGNIN] Current user:', window.firebaseAuth.currentUser);
+            }, 100);
+            
         } catch (error) {
             console.error('[SIGNIN] Error:', error);
             let errorMessage = 'Erreur de connexion.';
