@@ -1065,25 +1065,27 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[SIGNIN] User email:', userCredential.user.email);
             console.log('[SIGNIN] User email verified:', userCredential.user.emailVerified);
 
-            // Immediately verify with backend and enter the app
-            const idToken = await userCredential.user.getIdToken();
-            const verifyResponse = await fetch(`${API_BASE}/api/auth/verify`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${idToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const verifyData = await verifyResponse.json();
-            console.log('[SIGNIN] Backend verify response:', verifyData);
+            // Immediately enter the app UI; backend sync will run in background
+            showAuthMessage('Connexion réussie !', 'success');
+            showMainApp({ email: userCredential.user.email });
 
-            if (verifyData && verifyData.authenticated) {
-                showAuthMessage('Connexion réussie !', 'success');
-                showMainApp(verifyData.user);
-            } else {
-                console.warn('[SIGNIN] Backend did not authenticate user.');
-                showAuthMessage("Échec de la vérification du compte. Veuillez réessayer.", 'error');
-            }
+            // Fire-and-forget backend verification to sync server-side session
+            (async () => {
+                try {
+                    const idToken = await userCredential.user.getIdToken();
+                    const verifyResponse = await fetch(`${API_BASE}/api/auth/verify`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${idToken}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const verifyData = await verifyResponse.json();
+                    console.log('[SIGNIN] Backend verify response (background):', verifyData);
+                } catch (e) {
+                    console.warn('[SIGNIN] Background verify failed:', e);
+                }
+            })();
 
         } catch (error) {
             console.error('[SIGNIN] Error:', error);
