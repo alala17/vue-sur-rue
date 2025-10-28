@@ -831,7 +831,8 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         sendPasswordResetEmail,
         updatePassword,
         applyActionCode,
-        checkActionCode
+        checkActionCode,
+        onAuthStateChanged
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     
     // Firebase configuration
@@ -861,6 +862,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     window.updatePassword = updatePassword;
     window.applyActionCode = applyActionCode;
     window.checkActionCode = checkActionCode;
+    window.onAuthStateChanged = onAuthStateChanged;
 </script>
 <script>
 (function() {
@@ -970,7 +972,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         const auth = window.firebaseAuth;
         
         // Check if user is signed in
-        auth.onAuthStateChanged(async (user) => {
+        window.onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 authToken = await user.getIdToken();
