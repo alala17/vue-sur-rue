@@ -849,6 +849,11 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+
+    // Determine API base (handles cases where we are on firebaseapp.com action URL)
+    const API_BASE = (window.location.origin.includes('firebaseapp.com') || window.location.hostname.includes('web.app'))
+        ? 'https://vue-sur-rue-production.up.railway.app'
+        : '';
     
     // Make auth and functions available globally
     window.firebaseAuth = auth;
@@ -903,7 +908,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
             console.log('[API] Attempting to fetch namespaces...');
             if (statusText) statusText.textContent = 'Chargement des arrondissements...';
             
-            const response = await fetch('/api/namespaces');
+            const response = await fetch(`${API_BASE}/api/namespaces`);
             console.log('[API] Response status:', response.status);
             console.log('[API] Response headers:', response.headers);
             
@@ -980,7 +985,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 
                 // Verify with backend
                 try {
-                    const response = await fetch('/api/auth/verify', {
+                    const response = await fetch(`${API_BASE}/api/auth/verify`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
@@ -1062,7 +1067,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
 
             // Immediately verify with backend and enter the app
             const idToken = await userCredential.user.getIdToken();
-            const verifyResponse = await fetch('/api/auth/verify', {
+            const verifyResponse = await fetch(`${API_BASE}/api/auth/verify`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${idToken}`,
@@ -1428,7 +1433,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         
         // Check if user is approved first
         try {
-            const response = await fetch('/api/auth/check-status', {
+            const response = await fetch(`${API_BASE}/api/auth/check-status`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1458,7 +1463,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     // Usage and payment functions
     async function checkUsageStatus() {
         try {
-            const response = await fetch('/api/usage/check', {
+            const response = await fetch(`${API_BASE}/api/usage/check`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                     'Content-Type': 'application/json'
@@ -1501,7 +1506,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
         console.log('[PAYMENT] Auth token available:', !!authToken);
         
         try {
-            const response = await fetch('/api/payment/create-checkout-session', {
+            const response = await fetch(`${API_BASE}/api/payment/create-checkout-session`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -1572,7 +1577,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function manualActivateSubscription() {
         console.log('[MANUAL] Manually activating subscription...');
         try {
-            const response = await fetch('/api/payment/manual-activate', {
+            const response = await fetch(`${API_BASE}/api/payment/manual-activate`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -1599,7 +1604,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function checkSubscriptionStatus() {
         console.log('[SUBSCRIPTION] Checking subscription status...');
         try {
-            const response = await fetch('/api/usage/check', {
+            const response = await fetch(`${API_BASE}/api/usage/check`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -1636,7 +1641,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function debugUserStatus() {
         console.log('[DEBUG] Checking detailed user status...');
         try {
-            const response = await fetch('/api/debug/user-status', {
+            const response = await fetch(`${API_BASE}/api/debug/user-status`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -1684,7 +1689,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
     async function activateSubscription() {
         console.log('[ACTIVATE] Manually activating subscription...');
         try {
-            const response = await fetch('/api/payment/manual-activate', {
+            const response = await fetch(`${API_BASE}/api/payment/manual-activate`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
@@ -1831,7 +1836,7 @@ Pour optimiser les résultats, recadrez l'image sur l'extérieur (évitez vitres
                 headers['Authorization'] = `Bearer ${authToken}`;
             }
             
-            const response = await fetch('/api/search', {
+            const response = await fetch(`${API_BASE}/api/search`, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify({
